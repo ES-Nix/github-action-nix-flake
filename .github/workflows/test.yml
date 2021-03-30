@@ -16,8 +16,8 @@ jobs:
         extra_nix_config: |
           experimental-features = nix-command flakes
     - run: nix --version
-    - run: nix build nixpkgs#hello && hello
-    - run: nix build nixpkgs#python3Minimal && echo $(python) && python --version
+    - run: nix build nixpkgs#hello && result/bin/hello
+    - run: nix build nixpkgs#python3Minimal && echo $(result/bin/python) && result/bin/python --version
     - run: nix build github:cole-h/nixos-config/6779f0c3ee6147e5dcadfbaff13ad57b1fb00dc7#iso
     - run: nix build github:NixOS/nix#nix-static
     - run: nix build github:ES-Nix/nix-qemu-kvm/65d1358567e6c8309158dc04d299090846576fe2#qemu.prepare

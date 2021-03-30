@@ -16,4 +16,7 @@ jobs:
         extra_nix_config: |
           experimental-features = nix-command flakes
     - run: nix --version
-
+    - run: nix build nixpkgs#hello
+    - run: nix build nixpkgs#python3Minimal
+    - run: nix build github:cole-h/nixos-config/6779f0c3ee6147e5dcadfbaff13ad57b1fb00dc7#iso
+    - run: nix build github:NixOS/nix#nix-static

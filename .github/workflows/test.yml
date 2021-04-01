@@ -15,10 +15,10 @@ jobs:
         install_url: https://github.com/numtide/nix-flakes-installer/releases/download/nix-2.4pre20201221_9fab14a/install
         extra_nix_config: |
           experimental-features = nix-command flakes
-    - run: nix --version
-    - run: nix build nixpkgs#hello && result/bin/hello
-    - run: nix build nixpkgs#python3Minimal && echo $(result/bin/python) && result/bin/python --version
-    - run: nix build github:cole-h/nixos-config/6779f0c3ee6147e5dcadfbaff13ad57b1fb00dc7#iso
-    - run: nix build github:NixOS/nix#nix-static
-    - run: nix build github:ES-Nix/nix-qemu-kvm/65d1358567e6c8309158dc04d299090846576fe2#qemu.prepare
+    #- run: nix --version
+    #- run: nix build nixpkgs#hello && result/bin/hello
+    #- run: nix build nixpkgs#python3Minimal && echo $(result/bin/python) && result/bin/python --version
+    #- run: nix build github:cole-h/nixos-config/6779f0c3ee6147e5dcadfbaff13ad57b1fb00dc7#iso
+    #- run: nix build github:NixOS/nix#nix-static
     - run: nix develop github:ES-Nix/poetry2nix-examples/2cb6663e145bbf8bf270f2f45c869d69c657fef2
+    #- run: nix build github:ES-Nix/nix-qemu-kvm/65d1358567e6c8309158dc04d299090846576fe2#qemu.prepare

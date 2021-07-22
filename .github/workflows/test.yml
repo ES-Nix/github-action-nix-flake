@@ -17,8 +17,9 @@ jobs:
           experimental-features = nix-command flakes ca-references ca-derivations
     - run: nix --version
     #- run: nix profile install github:ES-Nix/podman-rootless/from-nixpkgs
-    - run: nix profile install nixpkgs#podman
-    - run: podman --version && podman info
+    - run: nix build github:ES-Nix/podman-rootless/from-nixpkgs
+    #- run: nix profile install nixpkgs#podman
+    - run: ./result/bin/podman --version && ./result/bin/podman info
     #- run: nix build nixpkgs#python3Minimal && echo $(result/bin/python) && result/bin/python --version
     #- run: nix build github:cole-h/nixos-config/6779f0c3ee6147e5dcadfbaff13ad57b1fb00dc7#iso
     #- run: nix build github:NixOS/nix#nix-static

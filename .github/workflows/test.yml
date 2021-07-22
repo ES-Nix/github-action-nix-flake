@@ -16,7 +16,8 @@ jobs:
         extra_nix_config: |
           experimental-features = nix-command flakes ca-references ca-derivations
           sandbox = false
-    - run: nix --version
+    - run: nix flake --version
+    - run: nix flake metadata nixpkgs
     #- run: nix profile install github:ES-Nix/podman-rootless/from-nixpkgs
     #- run: nix profile install nixpkgs#podman
     #- run: nix build github:ES-Nix/podman-rootless/from-nixpkgs

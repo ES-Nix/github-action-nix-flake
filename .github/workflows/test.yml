@@ -21,6 +21,7 @@ jobs:
     - run: nix flake metadata nixpkgs
     - run: nix profile install github:ES-Nix/podman-rootless/from-nixpkgs
     - run: podman --version && podman info
+    - run: ./run.sh
     #- run: nix profile install nixpkgs#podman
     #- run: nix build github:ES-Nix/podman-rootless/from-nixpkgs
     #- run: nix build nixpkgs#podman

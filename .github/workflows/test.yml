@@ -17,8 +17,12 @@ jobs:
         extra_nix_config: |
           experimental-features = nix-command flakes ca-derivations
           sandbox = false
-    - run: nix flake --version
-    - run: nix flake metadata nixpkgs
+    - run: |
+        nix flake --version
+        nix flake info nixpkgs
+    - run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends --no-install-suggests -y uidmap
     - run: nix profile install github:ES-Nix/podman-rootless/from-nixpkgs
     - run: podman --version && podman info
     - run: ./run.sh

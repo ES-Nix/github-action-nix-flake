@@ -10,8 +10,9 @@ To read:
 
 
 ```bash
-nix flake clone 'github:ES-Nix/github-action-nix-flake/dev' --dest github-action-nix-flake/actions \
-&& cd github-action-nix-flake/actions 1>/dev/null 2>/dev/null \
+nix flake clone 'git+ssh://git@github.com/ES-Nix/github-action-nix-flake.git' --dest github-action-nix-flake \
+&& cd github-action-nix-flake 1>/dev/null 2>/dev/null \
+&& git checkout dev \
 && (direnv --version 1>/dev/null 2>/dev/null && direnv allow) \
 || nix develop $SHELL
 ```

@@ -13,4 +13,4 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@v2
       - name: Build server and client
         run: |
-          nix build -L nixpkgs#pkgsStatic.hello
+          nix build --no-link --print-build-logs --print-out-paths nixpkgs#pkgsStatic.hello

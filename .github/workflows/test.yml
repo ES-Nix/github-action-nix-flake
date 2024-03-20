@@ -14,3 +14,7 @@ jobs:
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
           nix build --no-link --print-build-logs --print-out-paths nixpkgs#pkgsStatic.hello
+      - name: Inspect /dev/kvm
+        run: |
+          id
+          stat /dev/kvm

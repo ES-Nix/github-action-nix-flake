@@ -14,3 +14,4 @@ jobs:
       - name: Build server and client
         run: |
           nix build --no-link --print-build-logs --print-out-paths nixpkgs#pkgsStatic.hello
+          git ls-remote --tags git://github.com/NixOS/nixpkgs.git "refs/tags/23.11"

@@ -23,9 +23,10 @@ jobs:
           id
           stat /dev/kvm
 
-      - name: nix build ... pkgsStatic.nginx
+      - name: nix build ... pkgsStatic
         run: |
-          nix build --no-link --print-build-logs github:NixOS/nixpkgs/d50918bc1c43dea8fd5282dcaca3ebc7144e210f#pkgsStatic.python312
+          nix build --no-link --print-build-logs \
+          github:NixOS/nixpkgs/d50918bc1c43dea8fd5282dcaca3ebc7144e210f#pkgsCross.riscv64-embedded.pkgsStatic.hello
 
 #      - name: nix build nixosTest
 #        run: |

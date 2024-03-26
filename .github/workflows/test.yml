@@ -25,7 +25,7 @@ jobs:
 
       - name: nix build ... pkgsStatic.nginx
         run: |
-          nix build --no-link --print-build-logs github:NixOS/nixpkgs/d50918bc1c43dea8fd5282dcaca3ebc7144e210f#pkgsStatic.pkgsMusl.nginx
+          nix build --no-link --print-build-logs github:NixOS/nixpkgs/d50918bc1c43dea8fd5282dcaca3ebc7144e210f#pkgsStatic.python312
 
 #      - name: nix build nixosTest
 #        run: |

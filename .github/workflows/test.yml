@@ -26,7 +26,7 @@ jobs:
       - name: nix build ... pkgsStatic
         run: |
           nix build --no-link --print-build-logs \
-          --file nixos-test-python-corss.nix
+          --file nixos-test-python-cross.nix
 
 #      - name: nix build nixosTest
 #        run: |

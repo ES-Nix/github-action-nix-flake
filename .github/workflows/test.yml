@@ -23,7 +23,7 @@ jobs:
           id
           stat /dev/kvm
 
-      - name: nix build ... pkgsStatic
+      - name: nix build ...
         run: |
           nix build --no-link --print-build-logs \
           --file nixos-test-python-cross.nix

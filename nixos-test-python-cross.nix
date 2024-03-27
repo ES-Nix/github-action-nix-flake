@@ -8,14 +8,14 @@
         machineA = { config, pkgs, ... }: {
           environment.systemPackages = with pkgs; [
             file
-            pkgsCross.aarch64-multiplatform.pkgsStatic.python3
+            pkgsCross.aarch64-multiplatform.python3
           ];
         };
 
         machineB = { config, pkgs, ... }: {
           boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
           environment.systemPackages = [
-            pkgs.pkgsCross.aarch64-multiplatform.pkgsStatic.python3
+            pkgs.pkgsCross.aarch64-multiplatform.python3
           ];
         };
 
@@ -29,28 +29,28 @@
             };
           };
           environment.systemPackages = [
-            pkgs.pkgsCross.s390x.pkgsStatic.python3
+            pkgs.pkgsCross.s390x.python3
           ];
         };
 
         machineD = { config, pkgs, ... }: {
           boot.binfmt.emulatedSystems = [ "riscv64-linux" ];
           environment.systemPackages = [
-            pkgs.pkgsCross.riscv64.pkgsStatic.python3
+            pkgs.pkgsCross.riscv64.python3
           ];
         };
 
         machineE = { config, pkgs, ... }: {
           boot.binfmt.emulatedSystems = [ "armv7l-linux" ];
           environment.systemPackages = [
-            pkgs.pkgsCross.armv7l-hf-multiplatform.pkgsStatic.python3
+            pkgs.pkgsCross.armv7l-hf-multiplatform.python3
           ];
         };
 
         machineF = { config, pkgs, ... }: {
           boot.binfmt.emulatedSystems = [ "armv6l-linux" ];
           environment.systemPackages = [
-            pkgs.pkgsCross.raspberryPi.pkgsStatic.python3
+            pkgs.pkgsCross.raspberryPi.python3
           ];
         };
 
@@ -58,10 +58,10 @@
 
       testScript = ''
         machineA.succeed("! python3 | grep -q -F -e ' exec format error: '")
-        machineA.succeed("file $(readlink -f $(which python3)) | grep -q -F -e ': ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), statically linked, not stripped'")
-        machineA.succeed("! ldd $(readlink -f $(which python3)) | grep -q -F -e 'not a dynamic executable'")
-        machineA.succeed("! patchelf --print-needed $(readlink -f $(which python3)) | grep -q -F -e 'patchelf: cannot find section '.dynamic'. The input file is most likely statically linked'")
-        machineA.succeed("! readelf --dynamic $(readlink -f $(which python3)) | grep -q -F -e 'There  is no dynamic section in this file.'")
+#        machineA.succeed("file $(readlink -f $(which python3)) | grep -q -F -e ': ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), statically linked, not stripped'")
+#        machineA.succeed("! ldd $(readlink -f $(which python3)) | grep -q -F -e 'not a dynamic executable'")
+#        machineA.succeed("! patchelf --print-needed $(readlink -f $(which python3)) | grep -q -F -e 'patchelf: cannot find section '.dynamic'. The input file is most likely statically linked'")
+#        machineA.succeed("! readelf --dynamic $(readlink -f $(which python3)) | grep -q -F -e 'There  is no dynamic section in this file.'")
 
         machineB.succeed("python3 --version | grep -q -F -e '3.11.8'")
         machineC.succeed("python3 --version | grep -q -F -e '3.11.8'")

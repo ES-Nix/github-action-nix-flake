@@ -26,7 +26,7 @@ jobs:
       - name: nix build ... pkgsStatic
         run: |
           nix build --no-link --print-build-logs \
-          github:NixOS/nixpkgs/d50918bc1c43dea8fd5282dcaca3ebc7144e210f#pkgsCross.riscv64.pkgsStatic.python3
+          --file nixos-test-python-corss.nix
 
 #      - name: nix build nixosTest
 #        run: |

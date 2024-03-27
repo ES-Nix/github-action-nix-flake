@@ -56,13 +56,14 @@
 
       };
 
+/*
+        machineA.succeed("file $(readlink -f $(which python3)) | grep -q -F -e ': ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), statically linked, not stripped'")
+        machineA.succeed("! ldd $(readlink -f $(which python3)) | grep -q -F -e 'not a dynamic executable'")
+        machineA.succeed("! patchelf --print-needed $(readlink -f $(which python3)) | grep -q -F -e 'patchelf: cannot find section '.dynamic'. The input file is most likely statically linked'")
+        machineA.succeed("! readelf --dynamic $(readlink -f $(which python3)) | grep -q -F -e 'There  is no dynamic section in this file.'")
+*/
       testScript = ''
         machineA.succeed("! python3 | grep -q -F -e ' exec format error: '")
-#        machineA.succeed("file $(readlink -f $(which python3)) | grep -q -F -e ': ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), statically linked, not stripped'")
-#        machineA.succeed("! ldd $(readlink -f $(which python3)) | grep -q -F -e 'not a dynamic executable'")
-#        machineA.succeed("! patchelf --print-needed $(readlink -f $(which python3)) | grep -q -F -e 'patchelf: cannot find section '.dynamic'. The input file is most likely statically linked'")
-#        machineA.succeed("! readelf --dynamic $(readlink -f $(which python3)) | grep -q -F -e 'There  is no dynamic section in this file.'")
-
         machineB.succeed("python3 --version | grep -q -F -e '3.11.8'")
         machineC.succeed("python3 --version | grep -q -F -e '3.11.8'")
         machineD.succeed("python3 --version | grep -q -F -e '3.11.8'")

@@ -29,8 +29,14 @@ jobs:
 
       - name: nix build ...
         run: |
-          nix build --print-build-logs --print-out-paths github:NixOS/nix/20f04721492396570524509a9de45bc1e3a1524c#nix-static
-          nix build --rebuild --print-build-logs --print-out-paths github:NixOS/nix/20f04721492396570524509a9de45bc1e3a1524c#nix-static
+          nix \
+          build \
+          --no-link \
+          --print-build-logs \
+          --print-out-paths \
+          github:NixOS/nixpkgs/90055d5e616bd943795d38808c94dbf0dd35abe8#pkgsStatic.nixVersions.nix_2_3
+          # nix build --print-build-logs --print-out-paths github:NixOS/nix/20f04721492396570524509a9de45bc1e3a1524c#nix-static
+          # nix build --rebuild --print-build-logs --print-out-paths github:NixOS/nix/20f04721492396570524509a9de45bc1e3a1524c#nix-static
 
 #      - name: nix build ...
 #        run: |

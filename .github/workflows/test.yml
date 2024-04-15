@@ -23,8 +23,9 @@ jobs:
 
       - name: podman and docker
         run: |
-          podman images || true
+          # podman images || true
           docker images || true
+          docker run -it alpine:3.18 sh -c 'cat /etc/os-release'
 
       - name: nix build ...
         run: |

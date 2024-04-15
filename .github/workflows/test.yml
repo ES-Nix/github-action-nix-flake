@@ -15,13 +15,16 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v10
       - name: Build
         run: |
+          id
+          stat /dev/kvm          
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
           nix build --no-link --print-build-logs --print-out-paths nixpkgs#pkgsStatic.hello
+
       - name: Inspect /dev/kvm
         run: |
-          id
-          stat /dev/kvm
+          nix build --print-build-logs --print-out-paths github:NixOS/nix/20f04721492396570524509a9de45bc1e3a1524c#nix-static
+          nix build --rebuild --print-build-logs --print-out-paths github:NixOS/nix/20f04721492396570524509a9de45bc1e3a1524c#nix-static
 
       - name: nix build ...
         run: |

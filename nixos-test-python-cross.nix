@@ -56,7 +56,8 @@
         testCommand = ''
           python3 \
           -c \
-          'import numpy as np;
+          '
+          import numpy as np;
           np.array_equal(np.array([1,2]), np.sqrt(np.square(np.array([1,2]))))
           '
         '';

@@ -1,14 +1,17 @@
 # github-action-nix-flake
+
 Tests with github action and `nix` + `flakes`
 
 
-Main source: https://github.com/cachix/install-nix-action
+Main source: 
+- https://github.com/cachix/install-nix-action
 
 To read:
 - https://github.com/NixOS/nix/pull/4224
 - https://github.com/NixOS/nix/issues/4047
 
 
+Cloning using the Nix CLI:
 ```bash
 nix flake clone 'git+ssh://git@github.com/ES-Nix/github-action-nix-flake.git' --dest github-action-nix-flake \
 && cd github-action-nix-flake 1>/dev/null 2>/dev/null \
@@ -17,6 +20,7 @@ nix flake clone 'git+ssh://git@github.com/ES-Nix/github-action-nix-flake.git' --
 || nix develop $SHELL
 ```
 
+Cloning using the git CLI:
 ```bash
 git clone git@github.com:ES-Nix/.github.git \
 && cd .github \

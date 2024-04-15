@@ -40,6 +40,7 @@ jobs:
           sha512sum $(
             nix \
             build \
+            --rebuild \
             --no-link \
             --print-build-logs \
             --print-out-paths \

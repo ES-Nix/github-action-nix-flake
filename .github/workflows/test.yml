@@ -21,11 +21,11 @@ jobs:
           nix flake metadata nixpkgs
           nix build --no-link --print-build-logs --print-out-paths nixpkgs#pkgsStatic.hello
 
-      - name: podman and docker
+      - name: docker
         run: |
           # podman images || true
           docker images || true
-          docker run -it alpine:3.18 sh -c 'cat /etc/os-release'
+          docker run alpine:3.18 sh -c 'cat /etc/os-release'
 
       - name: nix build ...
         run: |

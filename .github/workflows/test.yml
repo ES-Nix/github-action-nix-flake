@@ -60,7 +60,7 @@ jobs:
           #   github:NixOS/nix/93e8660bba42c8c90fcc1455ebb6e8631b66d4cb#hydraJobs.buildStatic.x86_64-linux
           # )/bin/nix
           ./minimal.sh
-          ls -lah
+          ls -lah /nix/store/z8s3ajlqb0hbabzr7j4cnji1fr4iz8a4-nixos-23.11.6510.a5e4bbc
 
 #      - name: nix build ...
 #        run: |

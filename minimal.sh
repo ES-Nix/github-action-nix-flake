@@ -9,7 +9,7 @@ flake \
 init \
 --template \
 github:ES-nix/es#poetry2nixBasic
-direnv allow || true
+# direnv allow || true
 nix flake check '.#' --verbose
 
 #EXPR_NIX='

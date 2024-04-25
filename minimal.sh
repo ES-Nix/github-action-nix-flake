@@ -10,7 +10,7 @@ init \
 --template \
 github:ES-nix/es#poetry2nixBasic
 direnv allow
-nix check '.#' --verbose
+nix flake check '.#' --verbose
 
 #EXPR_NIX='
 #(

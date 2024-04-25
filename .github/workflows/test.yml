@@ -59,11 +59,11 @@ jobs:
           #   --print-out-paths \
           #   github:NixOS/nix/93e8660bba42c8c90fcc1455ebb6e8631b66d4cb#hydraJobs.buildStatic.x86_64-linux
           # )/bin/nix
-          # ./minimal.sh
+          ./minimal.sh
           # ls -lah /nix/store/z8s3ajlqb0hbabzr7j4cnji1fr4iz8a4-nixos-23.11.6510.a5e4bbc
-          curl https://hydra.nixos.org/build/230309007/reproduce | bash 
-          ls -lah /nix/store/2ps218g7snl3747p07xjs83c96w9ah5b-nixos-22.11.4773.ea4c80b
-          sha256sum /nix/store/2ps218g7snl3747p07xjs83c96w9ah5b-nixos-22.11.4773.ea4c80b/iso/nixos-minimal-22.11.4773.ea4c80b39be4-x86_64-linux.iso
+          # curl https://hydra.nixos.org/build/230309007/reproduce | bash 
+          # ls -lah /nix/store/2ps218g7snl3747p07xjs83c96w9ah5b-nixos-22.11.4773.ea4c80b
+          # sha256sum /nix/store/2ps218g7snl3747p07xjs83c96w9ah5b-nixos-22.11.4773.ea4c80b/iso/nixos-minimal-22.11.4773.ea4c80b39be4-x86_64-linux.iso
 
 #      - name: nix build ...
 #        run: |

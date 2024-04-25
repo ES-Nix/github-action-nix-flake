@@ -2,7 +2,7 @@
 
 
 
-mkdir -pv poetry2nix-basic \
+mkdir -pv ~/poetry2nix-basic \
 && cd $_ \
 && nix \
 flake \

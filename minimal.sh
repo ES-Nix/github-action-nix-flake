@@ -15,50 +15,54 @@
 
 EXPR_NIX='
 (
-  let
-    nixpkgs = (builtins.getFlake "github:NixOS/nixpkgs/ea4c80b39be4c09702b0cb3b42eab59e2ba4f24b");
-    pkgs = import nixpkgs {};
-    iso = (import "${pkgs.path}/nixos/release-combined.nix"
-        {
-          nixpkgs = { revCount = (4773 + 428633);
-            shortRev = "${nixpkgs.shortRev}";
-            rev = "${nixpkgs.rev}";
-          };
-          stableBranch = true;
-        }
-      ).nixos.iso_minimal.x86_64-linux;
+  (
+    (
+      builtins.getFlake "github:NixOS/nixpkgs/0938d73bb143f4ae037143572f11f4338c7b2d1c"
+    ).lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+                    "${toString (builtins.getFlake "github:NixOS/nixpkgs/0938d73bb143f4ae037143572f11f4338c7b2d1c")}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+                    {
+                      # https://nixos.wiki/wiki/Creating_a_NixOS_live_CD#Building_faster
+                      # isoImage.squashfsCompression = "gzip -Xcompression-level 1";
 
-  in
-    iso
+                      # compress 6x faster than default
+                      # but iso is 15% bigger
+                      # tradeoff acceptable because we do not want to distribute
+                      # default is xz which is very slow
+                      isoImage.squashfsCompression = "zstd -Xcompression-level 9";
+                    }
+                  ];
+    }
+  ).config.system.build.isoImage
 )
 '
 
 nix \
 build \
---impure \
 --print-build-logs \
 --print-out-paths \
 --expr \
 "$EXPR_NIX"
 
-EXPECTED_SHA256='76a3ac71257814a4603f941ad1803db80d51e08e758a8c119d4f5de26cdcb29d'
-ISO_PATTERN_NAME='/nix/store/pafjc6ycmbqvqbfw9zz52p62wjdsrf1r-nixos-minimal-22.11.4773.ea4c80b-x86_64-linux.iso/iso/nixos-minimal-22.11.4773.ea4c80b-x86_64-linux.iso'
-# sha256sum "${ISO_PATTERN_NAME}"
-echo "${EXPECTED_SHA256}"'  '"${ISO_PATTERN_NAME}" | sha256sum -c
+EXPECTED_SHA512='ce09cd8b0a2e0d5f9da2f921314417bf3f3904c7f11a590e7fde56c84a9ebecc78ee31faa7660efae332d4f6cc2bef129b3d214f2a53c52d7457d2869e310ebb'
+ISO_PATTERN_NAME='result/iso/nixos-22.11.20221217.0938d73-x86_64-linux.iso'
+# sha512sum "${ISO_PATTERN_NAME}"
+echo "${EXPECTED_SHA512}"'  '"${ISO_PATTERN_NAME}" | sha512sum -c
 
 
 nix \
 build \
---impure \
 --print-build-logs \
 --print-out-paths \
 --rebuild \
 --expr \
 "$EXPR_NIX"
 
-EXPECTED_SHA256='76a3ac71257814a4603f941ad1803db80d51e08e758a8c119d4f5de26cdcb29d'
-ISO_PATTERN_NAME='/nix/store/pafjc6ycmbqvqbfw9zz52p62wjdsrf1r-nixos-minimal-22.11.4773.ea4c80b-x86_64-linux.iso/iso/nixos-minimal-22.11.4773.ea4c80b-x86_64-linux.iso'
-echo "${EXPECTED_SHA256}"'  '"${ISO_PATTERN_NAME}" | sha256sum -c
+EXPECTED_SHA512='ce09cd8b0a2e0d5f9da2f921314417bf3f3904c7f11a590e7fde56c84a9ebecc78ee31faa7660efae332d4f6cc2bef129b3d214f2a53c52d7457d2869e310ebb'
+ISO_PATTERN_NAME='result/iso/nixos-22.11.20221217.0938d73-x86_64-linux.iso'
+echo "${EXPECTED_SHA512}"'  '"${ISO_PATTERN_NAME}" | sha512sum -c
+
 
 #EXPR_NIX='
 #(

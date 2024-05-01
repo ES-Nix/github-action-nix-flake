@@ -27,3 +27,14 @@ git clone git@github.com:ES-Nix/.github.git \
 && git checkout feature/dx-with-nix-and-home-manager \
 && ((direnv 1>/dev/null 2>/dev/null && direnv allow) || nix develop .#)
 ```
+
+
+Nix solves a huge set of really painfull problems.
+
+What is going to be your click moment is unkown.
+
+Note: there are things (kubernetes, race conditions from C to 
+systemd units or evem Celery) 
+that are not Nix fault's that it is not like it you would like.
+
+

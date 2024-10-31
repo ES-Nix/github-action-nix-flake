@@ -15,6 +15,7 @@
 
 nix build --print-build-logs --print-out-paths 'github:NixOS/nixpkgs/d24e7fdcfaecdca496ddd426cae98c9e2d12dfe8#pkgsMusl.nodejs'
 
+# shellcheck disable=SC2016
 EXPR_NIX='
 (
   (

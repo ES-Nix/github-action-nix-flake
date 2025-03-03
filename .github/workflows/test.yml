@@ -16,14 +16,15 @@ jobs:
         with:
           source-tag: v0.38.1
           source-revision: 107d5ef05c0b1119749e381451389eded30fb0d5
-          nix-installer-revision: 107d5ef05c0b1119749e381451389eded30fb0d5
           diagnostic-endpoint: ""
           nix-package-url: https://releases.nixos.org/nix/nix-2.26.2/nix-2.26.2-x86_64-linux.tar.xz
  
       - name: Build
         run: |
           id
-          stat /dev/kvm          
+          stat /dev/kvm
+          nix registry list 
+          nix registry pin nixpkgs github:NixOS/nixpkgs/30c9efeef01e2ad4880bff6a01a61dd99536b3c9
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
           nix build --no-link --print-build-logs --print-out-paths nixpkgs#pkgsStatic.hello

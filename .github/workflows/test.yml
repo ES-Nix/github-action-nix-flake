@@ -16,6 +16,7 @@ jobs:
         with:
           source-tag: v0.38.1
           source-revision: 107d5ef05c0b1119749e381451389eded30fb0d5
+          nix-installer-revision: 107d5ef05c0b1119749e381451389eded30fb0d5
           diagnostic-endpoint: ""
           nix-package-url: https://releases.nixos.org/nix/nix-2.26.2/nix-2.26.2-x86_64-linux.tar.xz
  

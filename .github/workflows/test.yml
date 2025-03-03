@@ -24,7 +24,7 @@ jobs:
           id
           stat /dev/kvm
           nix registry list 
-          nix registry pin nixpkgs github:NixOS/nixpkgs/30c9efeef01e2ad4880bff6a01a61dd99536b3c9
+          nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
           nix build --no-link --print-build-logs --print-out-paths nixpkgs#pkgsStatic.hello
@@ -37,8 +37,11 @@ jobs:
 
       - name: nix build ...
         run: |
-          nix build --cores 3 --no-link --print-build-logs --print-out-paths \
-          github:NixOS/nixpkgs/30c9efeef01e2ad4880bff6a01a61dd99536b3c9#pkgsCross.riscv64.python3Packages.uv
+          nix \
+          build \
+          --no-link \
+          --print-out-paths \
+          github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347#pkgsCross.riscv64.python3Packages.uv
           # echo 2_3
           # nix \
           # build \

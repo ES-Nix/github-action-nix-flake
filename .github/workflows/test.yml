@@ -12,9 +12,14 @@ jobs:
           stat /dev/kvm
       - uses: actions/checkout@v4
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v10
+        uses: DeterminateSystems/nix-installer-action@v16
         with:
-          nix-package-url: https://releases.nixos.org/nix/nix-2.18.1/nix-2.18.1-x86_64-linux.tar.xz
+          nix-installer-tag: v0.38.1
+          extra-conf: |
+            extra-experimental-features = nix-command flakes
+          source-revision: 107d5ef05c0b1119749e381451389eded30fb0d5
+          nix-version: 2.26.2
+ 
       - name: Build
         run: |
           id

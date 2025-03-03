@@ -29,11 +29,11 @@ jobs:
           nix flake metadata nixpkgs
           nix build --no-link --print-build-logs --print-out-paths nixpkgs#pkgsStatic.hello
 
-      - name: docker
-        run: |
-          # podman images || true
-          docker images || true
-          docker run alpine:3.18 sh -c 'cat /etc/os-release'
+      # - name: docker
+      #   run: |
+      #     # podman images || true
+      #     docker images || true
+      #     docker run alpine:3.18 sh -c 'cat /etc/os-release'
 
       - name: nix build ...
         run: |
@@ -74,6 +74,7 @@ jobs:
           # curl https://hydra.nixos.org/build/230309007/reproduce | bash 
           # ls -lah /nix/store/2ps218g7snl3747p07xjs83c96w9ah5b-nixos-22.11.4773.ea4c80b
           # sha256sum /nix/store/2ps218g7snl3747p07xjs83c96w9ah5b-nixos-22.11.4773.ea4c80b/iso/nixos-minimal-22.11.4773.ea4c80b39be4-x86_64-linux.iso
+
 
 #      - name: nix build ...
 #        run: |

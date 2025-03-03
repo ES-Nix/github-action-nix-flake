@@ -17,13 +17,13 @@ jobs:
           source-tag: v0.38.1
           source-revision: 107d5ef05c0b1119749e381451389eded30fb0d5
           diagnostic-endpoint: ""
-          nix-package-url: https://releases.nixos.org/nix/nix-2.26.2/nix-2.26.2-x86_64-linux.tar.xz
+          # nix-package-url: https://releases.nixos.org/nix/nix-2.26.2/nix-2.26.2-x86_64-linux.tar.xz
  
       - name: Build
         run: |
           id
-          stat /dev/kvm
-          nix registry list 
+          # stat /dev/kvm
+          # nix registry list 
           nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs

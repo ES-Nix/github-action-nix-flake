@@ -18,6 +18,7 @@ jobs:
           # - macos-15
           # - macos-14
           - macos-13
+        nix-version: [2.26.2]
 
     steps:
       - name: Inspect /dev/kvm before everything
@@ -43,7 +44,7 @@ jobs:
 
       - name: Build pkgsStatic.hello for testing nix
         run: |
-          echo https://releases.nixos.org/nix/nix-${{ matrix.nix-version }}/nix-2.26.2-${{ runner.arch == 'X64' && 'x86_64' || 'aarch64' }}-${{ runner.os == 'macOS' && 'darwin' || 'linux' }}.tar.xz
+          echo https://releases.nixos.org/nix/nix-${{ matrix.nix-version }}/nix-${{ matrix.nix-version }}-${{ runner.arch == 'X64' && 'x86_64' || 'aarch64' }}-${{ runner.os == 'macOS' && 'darwin' || 'linux' }}.tar.xz
           nix flake --version
           # nix registry list
           nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347

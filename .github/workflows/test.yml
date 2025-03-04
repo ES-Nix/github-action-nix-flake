@@ -23,7 +23,7 @@ jobs:
       - name: Inspect /dev/kvm before everything
         run: |
           id
-          stat /dev/kvm
+          stat /dev/kvm || true
 
       - uses: actions/checkout@v4
         with:

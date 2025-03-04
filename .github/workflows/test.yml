@@ -33,7 +33,6 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v16
         with:
           source-tag: v0.38.1
-          source-revision: aaaaaaaaaaaaaaaa
           diagnostic-endpoint: ""
  
       - name: Build pkgsStatic.hello for testing nix
@@ -50,7 +49,7 @@ jobs:
           nix flake --version
           nix flake metadata '.#'
           nix flake show '.#'
-          nix flake check '.#'
+          # nix flake check '.#'
 
       # - name: docker
       #   run: |

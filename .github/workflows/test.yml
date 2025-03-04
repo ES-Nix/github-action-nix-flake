@@ -50,14 +50,15 @@ jobs:
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
           # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
-          nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
           # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.sqlite
+          # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite          
       
       - name: Build checkedout local flake
         run: |
           nix flake --version
           nix flake metadata '.#'
           nix flake show '.#'
+          nix develop '.#' --command true
           # nix flake check '.#'
 
       # - name: docker

@@ -1,4 +1,4 @@
-name: "Test matrix of OSes and Nix versions"
+name: "Test matrix of OSes and Nix"
 on:
   pull_request:
   push:
@@ -42,9 +42,10 @@ jobs:
           nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
-          nix build --no-link --print-out-paths nixpkgs#pkgsStatic.uv
+          nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
+          nix build --no-link --print-out-paths nixpkgs#pkgsStatic.sqlite
       
-      - name: Build checkedout flake
+      - name: Build checkedout local flake
         run: |
           nix flake --version
           nix flake metadata '.#'

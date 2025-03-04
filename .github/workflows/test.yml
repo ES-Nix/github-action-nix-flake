@@ -1,33 +1,56 @@
-name: "Test"
+name: "Test matrix of OSes and Nix versions"
 on:
   pull_request:
   push:
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          # - ubuntu-24.04
+          # - ubuntu-22.04
+          # - ubuntu-20.04
+          - macos-latest
+          # - macos-15
+          # - macos-14
+          - macos-13
+
     steps:
-      - name: Inspect /dev/kvm
+      - name: Inspect /dev/kvm before everything
         run: |
           id
           stat /dev/kvm
+
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v16
         with:
           source-tag: v0.38.1
-          source-revision: 107d5ef05c0b1119749e381451389eded30fb0d5
+          source-revision: aaaaaaaaaaaaaaaa
           diagnostic-endpoint: ""
-          # nix-package-url: https://releases.nixos.org/nix/nix-2.26.2/nix-2.26.2-x86_64-linux.tar.xz
  
-      - name: Build
+      - name: Build pkgsStatic.hello for testing nix
         run: |
-          id
-          # stat /dev/kvm
-          # nix registry list 
+          nix flake --version
+          # nix registry list
           nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
-          nix build --no-link --print-build-logs --print-out-paths nixpkgs#pkgsStatic.hello
+          nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
+      
+      - name: Build checkedout flake
+        run: |
+          nix flake --version
+          nix flake metadata '.#'
+          nix flake show '.#'
+          nix flake check '.#'
 
       # - name: docker
       #   run: |
@@ -35,13 +58,13 @@ jobs:
       #     docker images || true
       #     docker run alpine:3.18 sh -c 'cat /etc/os-release'
 
-      - name: nix build ...
-        run: |
-          nix \
-          build \
-          --no-link \
-          --print-out-paths \
-          github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347#pkgsCross.riscv64.python3Packages.uv
+      # - name: nix build ...
+      #   run: |
+          # nix \
+          # build \
+          # --no-link \
+          # --print-out-paths \
+          # github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347#pkgsCross.riscv64.python3Packages.uv
           # echo 2_3
           # nix \
           # build \
@@ -72,7 +95,7 @@ jobs:
           #   --print-out-paths \
           #   github:NixOS/nix/93e8660bba42c8c90fcc1455ebb6e8631b66d4cb#hydraJobs.buildStatic.x86_64-linux
           # )/bin/nix
-          ./minimal.sh
+          # ./minimal.sh
           # ls -lah /nix/store/z8s3ajlqb0hbabzr7j4cnji1fr4iz8a4-nixos-23.11.6510.a5e4bbc
           # curl https://hydra.nixos.org/build/230309007/reproduce | bash 
           # ls -lah /nix/store/2ps218g7snl3747p07xjs83c96w9ah5b-nixos-22.11.4773.ea4c80b

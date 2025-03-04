@@ -34,11 +34,16 @@ jobs:
         with:
           source-tag: v0.38.1
           diagnostic-endpoint: ""
-          nix-package-url: https://releases.nixos.org/nix/nix-2.26.2/nix-2.26.2-x86_64-linux.tar.xz          
+          # nix-package-url: https://releases.nixos.org/nix/nix-2.26.2/nix-2.26.2-x86_64-linux.tar.xz          
  
+      # - name: Configure Magic Nix Cache
+      #   uses: https://github.com/DeterminateSystems/magic-nix-cache-action@v9
+      #   with:
+      #     diagnostic-endpoint: ""
+
       - name: Build pkgsStatic.hello for testing nix
         run: |
-          echo https://releases.nixos.org/nix/nix-${{ matrix.nix-version }}/nix-${{ matrix.nix-version }}-${{ runner.arch == 'X64' && 'x86_64' || 'aarch64' }}-${{ runner.os == 'macOS' && 'darwin' || 'linux' }}.tar.xz
+          echo https://releases.nixos.org/nix/nix-${{ matrix.nix-version }}/nix-2.26.2-${{ runner.arch == 'X64' && 'x86_64' || 'aarch64' }}-${{ runner.os == 'macOS' && 'darwin' || 'linux' }}.tar.xz
           nix flake --version
           # nix registry list
           nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347

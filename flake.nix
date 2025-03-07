@@ -446,11 +446,11 @@
           inherit (pkgs)
             myapp
             ;
-
           default = pkgs.myapp;
         }
         //
-          (pkgs.lib.optionalAttrs pkgs.stdenv.isLinux
+          # TODO: isLinux is not working because of /dev/kvm missing in github actions that are aarch64-linux
+          (pkgs.lib.optionalAttrs pkgs.stdenv.isx86_64
             {
               inherit (pkgs)
                 automatic-vm

@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        - include:
+        include:
           - os: ubuntu-latest
             arch: amd64
             platform: linux/amd64

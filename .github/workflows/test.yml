@@ -26,10 +26,31 @@ jobs:
         nix-version: [2.26.2]
 
     steps:
-      - name: Inspect /dev/kvm before everything
+      - name: Metadata about the runs-on machine before everything
         run: |
           id
-          stat /dev/kvm || true
+          stat /dev/kvm || true            
+          uname -a
+          cat /etc/os-release || true
+          cat /etc/lsb-release || true
+          cat /proc/cpuinfo || true
+          cat /proc/meminfo || true
+          df -h || true
+          free -h || true
+          nproc || true
+          lscpu || true
+          # sysctl -a || true
+          sysctl -a | grep -i mem || true
+          sysctl -a | grep -i cpu || true
+          sysctl -a | grep -i vm || true
+          sysctl -a | grep -i sched || true
+          sysctl -a | grep -i numa || true
+
+      - name: Smoke test about docker
+        run: |          
+          docker --version || true
+          docker images || true
+          docker run alpine:3.18 sh -c 'cat /etc/os-release' || true
 
       - uses: actions/checkout@v4
         with:
@@ -52,36 +73,31 @@ jobs:
           # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
           # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.sqlite
           # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
-          nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.ffmpeg
+          # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.ffmpeg
       
-      - name: Build checkedout local flake
+      - name: Build checked out local flake
         run: |
           nix flake --version
           nix flake metadata '.#'
           nix flake show '.#'
-          # nix develop '.#' --command true
+          # nix build --no-link --print-out-paths '.#'
+          # nix develop '.#' --command true          
           # nix flake check '.#'
 
-      # - name: docker
-      #   run: |
-      #     # podman images || true
-      #     docker images || true
-      #     docker run alpine:3.18 sh -c 'cat /etc/os-release'
-
-      # - name: nix build ...
-      #   run: |
-          # nix \
-          # build \
-          # --no-link \
-          # --print-out-paths \
-          # github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347#pkgsCross.riscv64.python3Packages.uv
-          # echo 2_3
-          # nix \
-          # build \
-          # --no-link \
-          # --print-build-logs \
-          # --print-out-paths \
-          # github:NixOS/nixpkgs/90055d5e616bd943795d38808c94dbf0dd35abe8#pkgsStatic.nixVersions.nix_2_3
+      - name: nix build ...
+        run: |
+          nix \
+          build \
+          --no-link \
+          --print-out-paths \
+          github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347#pkgsCross.riscv64.python3Packages.uv
+          echo 2_3
+          nix \
+          build \
+          --no-link \
+          --print-build-logs \
+          --print-out-paths \
+          github:NixOS/nixpkgs/90055d5e616bd943795d38808c94dbf0dd35abe8#pkgsStatic.nixVersions.nix_2_3
           # echo 2_18
           # sha512sum $(
           #   nix \

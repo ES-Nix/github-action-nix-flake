@@ -15,8 +15,8 @@ jobs:
           # - ubuntu-22.04
           # - ubuntu-20.04
           # 
-          - ubuntu-latest-arm
-          # - ubuntu-24.04-arm
+          # - ubuntu-latest-arm
+          - ubuntu-24.04-arm
           # - ubuntu-22.04-arm
           #           
           - macos-latest

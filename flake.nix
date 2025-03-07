@@ -445,14 +445,22 @@
         packages = {
           inherit (pkgs)
             myapp
-            # myappOCIImage
-            # testMyappOCIImage
-            # myvm
-            # automatic-vm
             ;
 
           default = pkgs.myapp;
-        };
+        }
+        //
+          (pkgs.lib.optionalAttrs pkgs.stdenv.isLinux
+            {
+              inherit (pkgs)
+                automatic-vm
+                myappOCIImage
+                myvm
+                testMyappOCIImage
+                ;
+            }
+          )        
+        ;
 
         apps = {
           defaut = {

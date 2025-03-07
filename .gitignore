@@ -1,9 +1,10 @@
-result
-
-.idea/
-
 __pycache__/
-
-*.tar.gz
-
+*.py[cod]
+*$py.class
+.idea/
+.env
 .direnv/
+.profiles/
+*.qcow2
+.nixos-test-history
+result*

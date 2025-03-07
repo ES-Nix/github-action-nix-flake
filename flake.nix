@@ -1,499 +1,281 @@
 {
-  description = "This an 'nix flake' :)";
+  description = "";
 
+  /*
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/3c92540611f42d3fb2d0d084a6c694cd6544b609'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/f554d27c1544d9c56e5f1f8e2b8aff399803674e'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/11415c7ae8539d6292f2928317ee7a8410b28bb9' \
+    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/f554d27c1544d9c56e5f1f8e2b8aff399803674e'
+
+    nix \
+    flake \
+    lock \
+    --override-input nixpkgs 'github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347' \
+    --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
+    --override-input poetry2nix 'github:nix-community/poetry2nix/98293f0b368f24c48e05aaa2359dcc0de15e976f'
+  */
   inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
+    poetry2nix = {
+      url = "github:nix-community/poetry2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
   };
 
-  outputs =
-    { self
-    , nixpkgs
-    , flake-utils
-    }:
-    flake-utils.lib.eachDefaultSystem (system:
-    let
-      name = "github-action-nix-flake";
+  outputs = { self, nixpkgs, flake-utils, poetry2nix }: {
+    overlays.default = nixpkgs.lib.composeManyExtensions [
+      (final: prev: {
+        foo-bar = prev.hello;
 
-      pkgsAllowUnfree = import nixpkgs {
-        # inherit system;
-        system = "x86_64-linux";
-        config = { allowUnfree = true; };
-      };
+        p2n = poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
+        myapp = final.p2n.mkPoetryApplication {
+          projectDir = ./.;
 
-    in
-    rec {
+          overrides = final.p2n.defaultPoetryOverrides.extend
+            (final: prev: {
+              itsdangerous = prev.itsdangerous.overridePythonAttrs
+                (
+                  old: {
+                    buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                  }
+                );
 
-      nixosConfigurations.nixosBuildVMX86_64LinuxPodman =
-        let
-          pkgs = import nixpkgs {
-            system = "x86_64-linux";
-            config = { allowUnfree = true; };
-          };
-        in
-        nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          # system = "aarch64-linux";
-          modules =
-            let
-              nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly";
-            in
-            [
-              "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/build-vm.nix"
-              "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-vm.nix"
-              # "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-guest.nix"
-              "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/installer/cd-dvd/channel.nix"
+              jinja2 = prev.jinja2.overridePythonAttrs
+                (
+                  old: {
+                    buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                  }
+                );
 
-              ({
-                # https://gist.github.com/andir/88458b13c26a04752854608aacb15c8f#file-configuration-nix-L11-L12
-                boot.loader.grub.extraConfig = "serial --unit=0 --speed=115200 \n terminal_output serial console; terminal_input serial console";
-                boot.kernelParams = [
-                  "console=tty0"
-                  "console=ttyS0,115200n8"
-                  # Set sensible kernel parameters
-                  # https://nixos.wiki/wiki/Bootloader
-                  # https://git.redbrick.dcu.ie/m1cr0man/nix-configs-rb/commit/ddb4d96dacc52357e5eaec5870d9733a1ea63a5a?lang=pt-PT
-                  "boot.shell_on_fail"
-                  "panic=30"
-                  "boot.panic_on_fail" # reboot the machine upon fatal boot issues
-                  # TODO: test it
-                  "intel_iommu=on"
-                  "iommu=pt"
+            });
+        };
 
-                  # https://discuss.linuxcontainers.org/t/podman-wont-run-containers-in-lxd-cgroup-controller-pids-unavailable/13049/2
-                  # https://github.com/NixOS/nixpkgs/issues/73800#issuecomment-729206223
-                  # https://github.com/canonical/microk8s/issues/1691#issuecomment-977543458
-                  # https://github.com/grahamc/nixos-config/blob/35388280d3b06ada5882d37c5b4f6d3baa43da69/devices/petunia/configuration.nix#L36
-                  # cgroup_no_v1=all
-                  "swapaccount=0"
-                  "systemd.unified_cgroup_hierarchy=0"
-                  "group_enable=memory"
-                ];
+        myappOCIImage =
+          let
 
-                boot.tmpOnTmpfs = false;
-                # https://github.com/AtilaSaraiva/nix-dotfiles/blob/main/lib/modules/configHost/default.nix#L271-L273
-                boot.tmpOnTmpfsSize = "100%";
-
-                # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
-                users.extraGroups.nixgroup.gid = 999;
-
-                users.users.nixuser = {
-                  isSystemUser = true;
-                  password = "1";
-                  createHome = true;
-                  home = "/home/nixuser";
-                  homeMode = "0700";
-                  description = "The VM tester user";
-                  group = "nixgroup";
-                  extraGroups = [
-                    "podman"
-                    "kvm"
-                    "libvirtd"
-                    "wheel"
-                  ];
-                  packages = with pkgs; [
-                    direnv
-                    gitFull
-                    xorg.xclock
-                    file
-                    btop
-                    # pkgsCross.aarch64-multiplatform-musl.pkgsStatic.hello
-
-                    # firefox
-                    # vscode
-                    # (python3.buildEnv.override
-                    #   {
-                    #     extraLibs = with python3Packages; [ scikitimage opencv2 numpy ];
-                    #   }
-                    # )
-                  ];
-                  shell = pkgs.bashInteractive;
-                  uid = 1234;
-                  autoSubUidGidRange = true;
-
-                  openssh.authorizedKeys.keyFiles = [
-                    "${ ./nixuser-keys.pub }"
-                  ];
-
-                  openssh.authorizedKeys.keys = [
-                    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly"
-                  ];
-                };
-
-                systemd.services.adds-change-workdir = {
-                  script = "echo cd /tmp/shared >> /home/nixuser/.profile";
-                  wantedBy = [ "multi-user.target" ];
-                };
-
-                systemd.services.creates-if-not-exist = {
-                  script = "echo touch /home/nixuser/.Xauthority >> /home/nixuser/.profile";
-                  wantedBy = [ "multi-user.target" ];
-                };
-
-                # https://unix.stackexchange.com/questions/619671/declaring-a-sym-link-in-a-users-home-directory#comment1159159_619703
-                systemd.services.populate-history = {
-                  script = "echo \"ls -al /nix/store\" >> /home/nixuser/.bash_history";
-                  wantedBy = [ "multi-user.target" ];
-                };
-
-                virtualisation = {
-                  # following configuration is added only when building VM with build-vm
-                  memorySize = 3072; # Use MiB memory.
-
-                  # nixos-disk-image> ERROR: cptofs failed. diskSize might be too small for closure.
-                  diskSize = 15*1024; # Use MiB memory.
-                  cores = 7; # Simulate 3 cores.
-                  #
-                  podman.enable = true;
-
-                  #
-                  useNixStoreImage = true;
-                  writableStore = true; # TODO
-
-                  # https://github.com/nix-community/nixos-generators/blob/10079333313ff62446e6f2b0e7c5231c7431d269/formats/vm-nogui.nix#L17C1-L18
-                  # graphics = false;
-                  # qemu.options = [ "-serial mon:stdio -display none -monitor none" ];
-                  qemu.options = [ "-display none -monitor none -daemonize" ];
-                };
-                security.polkit.enable = true;
-
-                # https://nixos.wiki/wiki/Libvirt
-                boot.extraModprobeConfig = "options kvm_intel nested=1";
-                boot.kernelModules = [
-                  "kvm-intel"
-                  "vfio-pci"
-                ];
-
-                # hardware.opengl.enable = true;
-                # hardware.opengl.driSupport = true;
-
-                nixpkgs.config.allowUnfree = true;
-                nix = {
-                  package = pkgs.nix;
-                  # package = pkgsCross.aarch64-multiplatform-musl.pkgsStatic.nix;
-                  extraOptions = "experimental-features = nix-command flakes";
-                  readOnlyStore = true;
-                };
-
-                boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-
-                # Enable the X11 windowing system.
-                services.xserver = {
-                  enable = true;
-                  displayManager.gdm.enable = true;
-                  displayManager.startx.enable = true;
-                  logFile = "/var/log/X.0.log";
-                  desktopManager.xterm.enable = true;
-                  # displayManager.gdm.autoLogin.enable = true;
-                  # displayManager.gdm.autoLogin.user = "nixuser";
-                };
-                services.spice-vdagentd.enable = true;
-
-                # https://github.com/NixOS/nixpkgs/issues/21332#issuecomment-268730694
-                services.openssh = {
-                  allowSFTP = true;
-                  kbdInteractiveAuthentication = false;
-                  enable = true;
-                  forwardX11 = true;
-                  passwordAuthentication = false;
-                  permitRootLogin = "yes";
-                  ports = [ 10022 ];
-                  authorizedKeysFiles = [
-                    "${ ./nixuser-keys.pub }"
-                  ];
-                };
-
-                # https://stackoverflow.com/a/71247061
-                # https://nixos.wiki/wiki/Firewall
-                networking.firewall = {
-                  enable = true;
-                  allowedTCPPorts = [ 22 80 443 10022 8000 ];
-                };
-
-                programs.ssh.forwardX11 = true;
-                services.qemuGuest.enable = true;
-
-                services.sshd.enable = true;
-
-                programs.dconf.enable = true;
-
-                time.timeZone = "America/Recife";
-                system.stateVersion = "22.11";
-
-                users.users.root = {
-                  password = "root";
-                  initialPassword = "root";
-                  openssh.authorizedKeys.keyFiles = [
-                    "${ ./nixuser-keys.pub }"
-                  ];
-                };
-              })
+            nonRootShadowSetup = { user, uid, group, gid }: with prev; [
+              (
+                writeTextDir "etc/shadow" ''
+                  ${user}:!:::::::
+                ''
+              )
+              (
+                writeTextDir "etc/passwd" ''
+                  ${user}:x:${toString uid}:${toString gid}::/home/${user}:${runtimeShell}
+                ''
+              )
+              (
+                writeTextDir "etc/group" ''
+                  ${group}:x:${toString gid}:
+                ''
+              )
+              (
+                writeTextDir "etc/gshadow" ''
+                  ${group}:x::
+                ''
+              )
             ];
+          in
+          prev.dockerTools.buildLayeredImage {
+            name = "myapp-oci-image";
+            tag = "0.0.1";
+            contents = [
+              final.myapp
+              # final.bashInteractive
+              # final.coreutils
+              final.busybox
+            ]
+            ++
+            (nonRootShadowSetup { user = "app_user"; uid = 12345; group = "app_group"; gid = 6789; })
+            ;
+
+            config = {
+              # TODO: use builtins.getTOML to get the command!
+              Cmd = [ "start" ];
+            };
+          };
+
+        devShellsDefault = final.mkShell {
+          buildInputs = with final; [
+            foo-bar
+            myapp
+          ];
+          shellHook = ''
+          '';
+        };
+
+        # Shell for poetry.
+        #     nix develop .#poetry
+        # Use this shell for changes to pyproject.toml and poetry.lock.
+        devShellsPoetry = final.mkShell {
+          packages = with final; [ poetry ];
+          shellHook = ''
+          '';          
         };
 
 
-      nixosConfigurations.nixosBuildVMAarch64LinuxPodman =
-        let
-          pkgs = import nixpkgs {
-            system = "aarch64-linux";
-            config = { allowUnfree = true; };
-          };
-        in
-        nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          # system = "aarch64-linux";
-          modules =
-            let
-              nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly";
-            in
-            [
-              "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/build-vm.nix"
-              "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-vm.nix"
-              # "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-guest.nix"
-              "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/installer/cd-dvd/channel.nix"
+        testMyappOCIImage = prev.testers.runNixOSTest {
+          name = "myapp-as-oci-image";
+          nodes.machine =
+            { config, pkgs, lib, ... }:
+            {
+              config.virtualisation.docker.enable = true;
+              config.virtualisation.podman.enable = true;
 
-              ({
-                # https://gist.github.com/andir/88458b13c26a04752854608aacb15c8f#file-configuration-nix-L11-L12
-                boot.loader.grub.extraConfig = "serial --unit=0 --speed=115200 \n terminal_output serial console; terminal_input serial console";
-                boot.kernelParams = [
-                  "console=tty0"
-                  "console=ttyS0,115200n8"
-                  # Set sensible kernel parameters
-                  # https://nixos.wiki/wiki/Bootloader
-                  # https://git.redbrick.dcu.ie/m1cr0man/nix-configs-rb/commit/ddb4d96dacc52357e5eaec5870d9733a1ea63a5a?lang=pt-PT
-                  "boot.shell_on_fail"
-                  "panic=30"
-                  "boot.panic_on_fail" # reboot the machine upon fatal boot issues
-                  # TODO: test it
-                  "intel_iommu=on"
-                  "iommu=pt"
+              # journalctl --unit docker-podman-load.service -b -f
+              config.systemd.services.docker-podman-load = {
+                description = "Docker and Podman load OCI Images";
+                wantedBy = [ "multi-user.target" ];
+                after = [ "docker.service" "podman.service" ];
+                path = with pkgs; [ docker podman ];
+                script = ''
+                  echo "Loading OCI Images..."
 
-                  # https://discuss.linuxcontainers.org/t/podman-wont-run-containers-in-lxd-cgroup-controller-pids-unavailable/13049/2
-                  # https://github.com/NixOS/nixpkgs/issues/73800#issuecomment-729206223
-                  # https://github.com/canonical/microk8s/issues/1691#issuecomment-977543458
-                  # https://github.com/grahamc/nixos-config/blob/35388280d3b06ada5882d37c5b4f6d3baa43da69/devices/petunia/configuration.nix#L36
-                  # cgroup_no_v1=all
-                  "swapaccount=0"
-                  "systemd.unified_cgroup_hierarchy=0"
-                  "group_enable=memory"
-                ];
-
-                boot.tmpOnTmpfs = false;
-                # https://github.com/AtilaSaraiva/nix-dotfiles/blob/main/lib/modules/configHost/default.nix#L271-L273
-                boot.tmpOnTmpfsSize = "100%";
-
-                # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
-                users.extraGroups.nixgroup.gid = 999;
-
-                users.users.nixuser = {
-                  isSystemUser = true;
-                  password = "1";
-                  createHome = true;
-                  home = "/home/nixuser";
-                  homeMode = "0700";
-                  description = "The VM tester user";
-                  group = "nixgroup";
-                  extraGroups = [
-                    "podman"
-                    "kvm"
-                    "libvirtd"
-                    "wheel"
-                  ];
-                  packages = with pkgs; [
-                    direnv
-                    gitFull
-                    xorg.xclock
-                    file
-                    btop
-                    # pkgsCross.aarch64-multiplatform-musl.pkgsStatic.hello
-
-                    # firefox
-                    # vscode
-                    # (python3.buildEnv.override
-                    #   {
-                    #     extraLibs = with python3Packages; [ scikitimage opencv2 numpy ];
-                    #   }
-                    # )
-                  ];
-                  shell = pkgs.bashInteractive;
-                  uid = 1234;
-                  autoSubUidGidRange = true;
-
-                  openssh.authorizedKeys.keyFiles = [
-                    "${ ./nixuser-keys.pub }"
-                  ];
-
-                  openssh.authorizedKeys.keys = [
-                    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly"
-                  ];
+                  docker load <"${final.myappOCIImage}"
+                  podman load <"${final.myappOCIImage}"
+                '';
+                serviceConfig = {
+                  Type = "oneshot";
                 };
+              };
 
-                systemd.services.adds-change-workdir = {
-                  script = "echo cd /tmp/shared >> /home/nixuser/.profile";
-                  wantedBy = [ "multi-user.target" ];
-                };
+              # https://wiki.nixos.org/wiki/NixOS_VM_tests#Connecting_to_an_interactive_VM_via_SSH
+              # ssh root@localhost -p 2000
+              # config.services.openssh = {
+              #   enable = true;
+              #   settings = {
+              #     PermitRootLogin = "yes";
+              #     PermitEmptyPasswords = "yes";
+              #   };
+              # };
+              # config.security.pam.services.sshd.allowNullPassword = true;
+              # config.virtualisation.forwardPorts = [
+              #   { from = "host"; host.port = 2000; guest.port = 22; }
+              # ];
 
-                systemd.services.creates-if-not-exist = {
-                  script = "echo touch /home/nixuser/.Xauthority >> /home/nixuser/.profile";
-                  wantedBy = [ "multi-user.target" ];
-                };
+            };
+          testScript = ''
+            start_all()
 
-                # https://unix.stackexchange.com/questions/619671/declaring-a-sym-link-in-a-users-home-directory#comment1159159_619703
-                systemd.services.populate-history = {
-                  script = "echo \"ls -al /nix/store\" >> /home/nixuser/.bash_history";
-                  wantedBy = [ "multi-user.target" ];
-                };
+            # machine.wait_for_unit("docker-podman-load") # TODO
+            machine.wait_until_succeeds("docker images | grep myapp")
 
-                virtualisation = {
-                  # following configuration is added only when building VM with build-vm
-                  memorySize = 3072; # Use MiB memory.
+            machine.succeed("docker run -d --name=container-app --publish=5000:5000 --rm=true myapp-oci-image:0.0.1")
+            machine.wait_for_open_port(5000)
+            expected = 'Hello world!!'
+            result = machine.wait_until_succeeds("curl http://0.0.0.0:5000")
+            assert expected == result, f"expected = {expected}, result = {result}"
 
-                  # nixos-disk-image> ERROR: cptofs failed. diskSize might be too small for closure.
-                  diskSize = 15*1024; # Use MiB memory.
-                  cores = 7; # Simulate 3 cores.
-                  #
-                  podman.enable = true;
+            machine.succeed("docker stop container-app")
+            expected = "curl: (7) Failed to connect to 127.0.0.1 port 5000 after"
+            result = machine.fail("curl http://127.0.0.1:5000 2>&1")
+            assert expected in result, f"expected = {expected}, result = {result}"
 
-                  #
-                  useNixStoreImage = true;
-                  writableStore = true; # TODO
+            machine.wait_until_succeeds("podman images | grep myapp")
 
-                  # https://github.com/nix-community/nixos-generators/blob/10079333313ff62446e6f2b0e7c5231c7431d269/formats/vm-nogui.nix#L17C1-L18
-                  # graphics = false;
-                  # qemu.options = [ "-serial mon:stdio -display none -monitor none" ];
-                  qemu.options = [ "-display none -monitor none -daemonize" ];
-                };
-                security.polkit.enable = true;
+            machine.succeed("podman run -d --name=container-app --publish=5000:5000 --rm=true myapp-oci-image:0.0.1")
+            machine.wait_for_open_port(5000)
+            expected = 'Hello world!!'
+            result = machine.wait_until_succeeds("curl http://0.0.0.0:5000")
+            assert expected == result, f"expected = {expected}, result = {result}"
 
-                # https://nixos.wiki/wiki/Libvirt
-                boot.extraModprobeConfig = "options kvm_intel nested=1";
-                boot.kernelModules = [
-                  "kvm-intel"
-                  "vfio-pci"
-                ];
-
-                # hardware.opengl.enable = true;
-                # hardware.opengl.driSupport = true;
-
-                nixpkgs.config.allowUnfree = true;
-                nix = {
-                  package = pkgs.nix;
-                  # package = pkgsCross.aarch64-multiplatform-musl.pkgsStatic.nix;
-                  extraOptions = "experimental-features = nix-command flakes";
-                  readOnlyStore = true;
-                };
-
-                boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-
-                # Enable the X11 windowing system.
-                services.xserver = {
-                  enable = true;
-                  displayManager.gdm.enable = true;
-                  displayManager.startx.enable = true;
-                  logFile = "/var/log/X.0.log";
-                  desktopManager.xterm.enable = true;
-                  # displayManager.gdm.autoLogin.enable = true;
-                  # displayManager.gdm.autoLogin.user = "nixuser";
-                };
-                services.spice-vdagentd.enable = true;
-
-                # https://github.com/NixOS/nixpkgs/issues/21332#issuecomment-268730694
-                services.openssh = {
-                  allowSFTP = true;
-                  kbdInteractiveAuthentication = false;
-                  enable = true;
-                  forwardX11 = true;
-                  passwordAuthentication = false;
-                  permitRootLogin = "yes";
-                  ports = [ 10022 ];
-                  authorizedKeysFiles = [
-                    "${ ./nixuser-keys.pub }"
-                  ];
-                };
-
-                # https://stackoverflow.com/a/71247061
-                # https://nixos.wiki/wiki/Firewall
-                networking.firewall = {
-                  enable = true;
-                  allowedTCPPorts = [ 22 80 443 10022 8000 ];
-                };
-
-                programs.ssh.forwardX11 = true;
-                services.qemuGuest.enable = true;
-
-                services.sshd.enable = true;
-
-                programs.dconf.enable = true;
-
-                time.timeZone = "America/Recife";
-                system.stateVersion = "22.11";
-
-                users.users.root = {
-                  password = "root";
-                  initialPassword = "root";
-                  openssh.authorizedKeys.keyFiles = [
-                    "${ ./nixuser-keys.pub }"
-                  ];
-                };
-              })
-            ];
+            machine.succeed("podman stop container-app")
+            expected = "curl: (7) Failed to connect to 127.0.0.1 port 5000 after"
+            result = machine.fail("curl http://127.0.0.1:5000 2>&1")
+            assert expected in result, f"expected = {expected}, result = {result}"
+          '';
+          # hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs
         };
 
-      nixosConfigurations.nixosBuildVMX86_64LinuxDocker =
-        let
-          pkgs = import nixpkgs {
-            system = "x86_64-linux";
-            config = { allowUnfree = true; };
-          };
-        in
-        nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          # system = "aarch64-linux";
-          modules =
-            let
-              nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly";
-            in
-            [
-              "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/build-vm.nix"
-              "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-vm.nix"
-              # "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-guest.nix"
-              "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/installer/cd-dvd/channel.nix"
+        nixos-vm = nixpkgs.lib.nixosSystem {
+          system = prev.system;
+          modules = [
+            ({ config, nixpkgs, pkgs, lib, modulesPath, ... }:
+              {
+                # Internationalisation options
+                i18n.defaultLocale = "en_US.UTF-8";
+                console.keyMap = "br-abnt2";
 
-              ({
-                # https://gist.github.com/andir/88458b13c26a04752854608aacb15c8f#file-configuration-nix-L11-L12
-                boot.loader.grub.extraConfig = "serial --unit=0 --speed=115200 \n terminal_output serial console; terminal_input serial console";
-                boot.kernelParams = [
-                  "console=tty0"
-                  "console=ttyS0,115200n8"
-                  # Set sensible kernel parameters
-                  # https://nixos.wiki/wiki/Bootloader
-                  # https://git.redbrick.dcu.ie/m1cr0man/nix-configs-rb/commit/ddb4d96dacc52357e5eaec5870d9733a1ea63a5a?lang=pt-PT
-                  "boot.shell_on_fail"
-                  "panic=30"
-                  "boot.panic_on_fail" # reboot the machine upon fatal boot issues
-                  # TODO: test it
-                  "intel_iommu=on"
-                  "iommu=pt"
+                # Set your time zone.
+                time.timeZone = "America/Recife";
 
-                  # https://discuss.linuxcontainers.org/t/podman-wont-run-containers-in-lxd-cgroup-controller-pids-unavailable/13049/2
-                  # https://github.com/NixOS/nixpkgs/issues/73800#issuecomment-729206223
-                  # https://github.com/canonical/microk8s/issues/1691#issuecomment-977543458
-                  # https://github.com/grahamc/nixos-config/blob/35388280d3b06ada5882d37c5b4f6d3baa43da69/devices/petunia/configuration.nix#L36
-                  # cgroup_no_v1=all
-                  "swapaccount=0"
-                  "systemd.unified_cgroup_hierarchy=0"
-                  "group_enable=memory"
-                ];
+                # Why
+                # nix flake show --impure .#
+                # break if it does not exists?
+                # Use systemd boot (EFI only)
+                boot.loader.systemd-boot.enable = true;
+                fileSystems."/" = { device = "/dev/hda1"; };
 
-                boot.tmpOnTmpfs = false;
-                # https://github.com/AtilaSaraiva/nix-dotfiles/blob/main/lib/modules/configHost/default.nix#L271-L273
-                boot.tmpOnTmpfsSize = "100%";
+                virtualisation.vmVariant =
+                  {
+                    virtualisation.docker.enable = true;
+                    virtualisation.podman.enable = true;
 
+                    virtualisation.memorySize = 1024 * 9; # Use MiB memory.
+                    virtualisation.diskSize = 1024 * 50; # Use MiB memory.
+                    virtualisation.cores = 7; # Number of cores.
+                    virtualisation.graphics = true;
+
+                    virtualisation.resolution = lib.mkForce { x = 1024; y = 768; };
+
+                    virtualisation.qemu.options = [
+                      # https://www.spice-space.org/spice-user-manual.html#Running_qemu_manually
+                      # remote-viewer spice://localhost:3001
+
+                      # "-daemonize" # How to save the QEMU PID?
+                      "-machine vmport=off"
+                      "-vga qxl"
+                      "-spice port=3001,disable-ticketing=on"
+                      "-device virtio-serial"
+                      "-chardev spicevmc,id=vdagent,debug=0,name=vdagent"
+                      "-device virtserialport,chardev=vdagent,name=com.redhat.spice.0"
+                    ];
+
+                    virtualisation.useNixStoreImage = false; # TODO: hardening
+                    virtualisation.writableStore = true; # TODO: hardening
+                  };
+
+                # journalctl --unit docker-custom-bootstrap-1.service -b -f
+                systemd.services.docker-custom-bootstrap-1 = {
+                  description = "Docker Custom Bootstrap 1";
+                  wantedBy = [ "multi-user.target" ];
+                  after = [ "docker.service" ];
+                  path = with pkgs; [ docker ];
+                  script = ''
+                    echo "Loading OCI Images in docker..."
+
+                    docker load <"${pkgs.myappOCIImage}"
+                    podman load <"${pkgs.myappOCIImage}"
+                  '';
+                  serviceConfig = {
+                    Type = "oneshot";
+                  };
+                };
+
+                security.sudo.wheelNeedsPassword = false; # TODO: hardening
                 # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
                 users.extraGroups.nixgroup.gid = 999;
-
                 users.users.nixuser = {
                   isSystemUser = true;
-                  password = "1";
+                  password = "1"; # TODO: hardening
                   createHome = true;
                   home = "/home/nixuser";
                   homeMode = "0700";
@@ -501,345 +283,218 @@
                   group = "nixgroup";
                   extraGroups = [
                     "docker"
-                    "kvm"
-                    "libvirtd"
                     "wheel"
                   ];
                   packages = with pkgs; [
-                    direnv
-                    gitFull
-                    xorg.xclock
                     file
-                    # pkgsCross.aarch64-multiplatform-musl.pkgsStatic.hello
-                    btop
-                    # firefox
-                    # vscode
-                    # (python3.buildEnv.override
-                    #   {
-                    #     extraLibs = with python3Packages; [ scikitimage opencv2 numpy ];
-                    #   }
-                    # )
+                    firefox
+                    git
+                    jq
+                    lsof
+                    findutils
+                    dive
+                    foo-bar
+                    final.myapp
+                    starship
+                    direnv
+                    fzf
+                    sudo
+                    which
                   ];
-                  shell = pkgs.bashInteractive;
+                  shell = pkgs.zsh;
                   uid = 1234;
                   autoSubUidGidRange = true;
-
-                  openssh.authorizedKeys.keyFiles = [
-                    "${ ./nixuser-keys.pub }"
-                  ];
-
-                  openssh.authorizedKeys.keys = [
-                    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly"
-                  ];
                 };
 
-                systemd.services.adds-change-workdir = {
-                  script = "echo cd /tmp/shared >> /home/nixuser/.profile";
-                  wantedBy = [ "multi-user.target" ];
-                };
+                # https://github.com/NixOS/nixpkgs/blob/3a44e0112836b777b176870bb44155a2c1dbc226/nixos/modules/programs/zsh/oh-my-zsh.nix#L119
+                # https://discourse.nixos.org/t/nix-completions-for-zsh/5532
+                # https://github.com/NixOS/nixpkgs/blob/09aa1b23bb5f04dfc0ac306a379a464584fc8de7/nixos/modules/programs/zsh/zsh.nix#L230-L231
+                programs.zsh = {
+                  enable = true;
+                  shellAliases = {
+                    vim = "nvim";
+                  };
 
-                systemd.services.creates-if-not-exist = {
-                  script = "echo touch /home/nixuser/.Xauthority >> /home/nixuser/.profile";
-                  wantedBy = [ "multi-user.target" ];
-                };
+                  enableCompletion = true;
+                  autosuggestions.enable = true;
+                  syntaxHighlighting.enable = true;
+                  interactiveShellInit = ''
+                    export ZSH=${pkgs.oh-my-zsh}/share/oh-my-zsh
+                    export ZSH_THEME="agnoster"
+                    export ZSH_CUSTOM=${pkgs.zsh-autosuggestions}/share/zsh-autosuggestions
+                    plugins=(
+                              colored-man-pages
+                              docker
+                              git
+                              #zsh-autosuggestions # Why this causes an warn?
+                              #zsh-syntax-highlighting
+                            )
 
-                # https://unix.stackexchange.com/questions/619671/declaring-a-sym-link-in-a-users-home-directory#comment1159159_619703
-                systemd.services.populate-history = {
-                  script = "echo \"ls -al /nix/store\" >> /home/nixuser/.bash_history";
-                  wantedBy = [ "multi-user.target" ];
-                };
+                    # https://nixos.wiki/wiki/Fzf
+                    source $ZSH/oh-my-zsh.sh
 
-                virtualisation = {
-                  # following configuration is added only when building VM with build-vm
-                  memorySize = 3072; # Use MiB memory.
-                  diskSize = 4096; # Use MiB memory.
-                  cores = 7; # Simulate 3 cores.
-                  #
-                  docker.enable = true;
+                    export DIRENV_LOG_FORMAT=""
+                    eval "$(direnv hook zsh)"
 
-                  #
-                  useNixStoreImage = true;
-                  writableStore = true; # TODO
-                };
-                security.polkit.enable = true;
+                    eval "$(starship init zsh)"
 
-                environment.etc."containers/registries.conf" = {
-                  mode = "0644";
-                  text = ''
-                    [registries.search]
-                    registries = ['docker.io', 'localhost']
+                    export FZF_BASE=$(fzf-share)
+                    source "$(fzf-share)/completion.zsh"
+                    source "$(fzf-share)/key-bindings.zsh"
                   '';
+
+                  ohMyZsh.custom = "${pkgs.zsh-autosuggestions}/share/zsh-autosuggestions";
+                  promptInit = "";
                 };
 
-                # https://nixos.wiki/wiki/Libvirt
-                boot.extraModprobeConfig = "options kvm_intel nested=1";
-                boot.kernelModules = [
-                  "kvm-intel"
-                  "vfio-pci"
+                fonts = {
+                  fontDir.enable = true;
+                  packages = with pkgs; [
+                    powerline
+                    powerline-fonts
+                  ];
+                  enableDefaultPackages = true;
+                  enableGhostscriptFonts = true;
+                };
+
+                # Hack to fix annoying zsh warning, too overkill probably
+                # https://www.reddit.com/r/NixOS/comments/cg102t/how_to_run_a_shell_command_upon_startup/eudvtz1/?utm_source=reddit&utm_medium=web2x&context=3
+                # https://stackoverflow.com/questions/638975/how-wdo-i-tell-if-a-regular-file-does-not-exist-in-bash#comment25226870_638985
+                systemd.user.services.fix-zsh-warning = {
+                  script = ''
+                    test -f /home/nixuser/.zshrc || touch /home/nixuser/.zshrc && chown nixuser: -Rv /home/nixuser
+                  '';
+                  wantedBy = [ "default.target" ];
+                };
+
+                services.xserver.enable = true;
+                services.xserver.xkb.layout = "br";
+                services.displayManager.autoLogin.user = "nixuser";
+                services.xserver.displayManager.sessionCommands = ''
+                  exo-open \
+                    --launch TerminalEmulator \
+                    --zoom=-3 \
+                    --geometry 154x40
+                '';
+
+                # https://nixos.org/manual/nixos/stable/#sec-xfce
+                services.xserver.desktopManager.xfce.enable = true;
+                services.xserver.desktopManager.xfce.enableScreensaver = false;
+                services.xserver.videoDrivers = [ "qxl" ];
+                services.spice-vdagentd.enable = true; # For copy/paste to work
+
+                nix.extraOptions = "experimental-features = nix-command flakes";
+
+                environment.systemPackages = with pkgs; [
                 ];
 
-                # hardware.opengl.enable = true;
-                # hardware.opengl.driSupport = true;
-
-                nixpkgs.config.allowUnfree = true;
-                nix = {
-                  package = pkgs.nix;
-                  # package = pkgsCross.aarch64-multiplatform-musl.pkgsStatic.nix;
-                  extraOptions = "experimental-features = nix-command flakes";
-                  readOnlyStore = true;
-                };
-
-                boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-
-                # Enable the X11 windowing system.
-                services.xserver = {
-                  enable = true;
-                  displayManager.gdm.enable = true;
-                  displayManager.startx.enable = true;
-                  logFile = "/var/log/X.0.log";
-                  desktopManager.xterm.enable = true;
-                  # displayManager.gdm.autoLogin.enable = true;
-                  # displayManager.gdm.autoLogin.user = "nixuser";
-                };
-                services.spice-vdagentd.enable = true;
-
-                # https://github.com/NixOS/nixpkgs/issues/21332#issuecomment-268730694
-                services.openssh = {
-                  allowSFTP = true;
-                  kbdInteractiveAuthentication = false;
-                  enable = true;
-                  forwardX11 = true;
-                  passwordAuthentication = false;
-                  permitRootLogin = "yes";
-                  ports = [ 10022 ];
-                  authorizedKeysFiles = [
-                    "${ ./nixuser-keys.pub }"
-                  ];
-                };
-
-                # https://stackoverflow.com/a/71247061
-                # https://nixos.wiki/wiki/Firewall
-                networking.firewall = {
-                  enable = true;
-                  allowedTCPPorts = [ 22 80 443 10022 8000 ];
-                };
-
-                programs.ssh.forwardX11 = true;
-                services.qemuGuest.enable = true;
-
-                services.sshd.enable = true;
-
-                programs.dconf.enable = true;
-
-                time.timeZone = "America/Recife";
-                system.stateVersion = "22.11";
-
-                users.users.root = {
-                  password = "root";
-                  initialPassword = "root";
-                  openssh.authorizedKeys.keyFiles = [
-                    "${ ./nixuser-keys.pub }"
-                  ];
-                };
+                system.stateVersion = "24.05";
               })
-            ];
+
+            { nixpkgs.overlays = [ self.overlays.default ]; }
+          ];
+          specialArgs = { inherit nixpkgs; };
         };
 
-      nixosConfigurations.nixosBuildVMAarch64Linux =
-        let
-          pkgs = import nixpkgs {
-            # system = "x86_64-linux";
-            system = "aarch64-linux";
-            config = { allowUnfree = true; };
-          };
-        in
-        nixpkgs.lib.nixosSystem
-          {
-            system = "aarch64-linux";
-            modules =
-              let
-                nixuserKeys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly";
-              in
-              [
-                "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/build-vm.nix"
-                "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-vm.nix"
-                # "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/virtualisation/qemu-guest.nix"
-                "${toString (builtins.getFlake "github:NixOS/nixpkgs/a8f8b7db23ec6450e384da183d270b18c58493d4")}/nixos/modules/installer/cd-dvd/channel.nix"
+        myvm = final.nixos-vm.config.system.build.vm;
 
-                ({
-                  boot.kernelParams = [
-                    "console=tty0"
-                    "console=ttyAMA0,115200n8"
-                    # Set sensible kernel parameters
-                    # https://nixos.wiki/wiki/Bootloader
-                    # https://git.redbrick.dcu.ie/m1cr0man/nix-configs-rb/commit/ddb4d96dacc52357e5eaec5870d9733a1ea63a5a?lang=pt-PT
-                    "boot.shell_on_fail"
-                    "panic=30"
-                    "boot.panic_on_fail" # reboot the machine upon fatal boot issues
-                    # TODO: test it
-                    "intel_iommu=on"
-                    "iommu=pt"
+        automatic-vm = prev.writeShellApplication {
+          name = "run-nixos-vm";
+          runtimeInputs = with final; [ curl virt-viewer ];
+          text = ''
+            export VNC_PORT=3001
 
-                    # https://discuss.linuxcontainers.org/t/podman-wont-run-containers-in-lxd-cgroup-controller-pids-unavailable/13049/2
-                    # https://github.com/NixOS/nixpkgs/issues/73800#issuecomment-729206223
-                    # https://github.com/canonical/microk8s/issues/1691#issuecomment-977543458
-                    # https://github.com/grahamc/nixos-config/blob/35388280d3b06ada5882d37c5b4f6d3baa43da69/devices/petunia/configuration.nix#L36
-                    # cgroup_no_v1=all
-                    "swapaccount=0"
-                    "systemd.unified_cgroup_hierarchy=0"
-                    "group_enable=memory"
-                  ];
+            ${final.myvm}/bin/run-nixos-vm & PID_QEMU="$!"
 
-                  boot.tmpOnTmpfs = false;
-                  # https://github.com/AtilaSaraiva/nix-dotfiles/blob/main/lib/modules/configHost/default.nix#L271-L273
-                  boot.tmpOnTmpfsSize = "100%";
+            for _ in {0..50}; do
+              if [[ $(curl --fail --silent http://localhost:"$VNC_PORT") -eq 1 ]];
+              then
+                break
+              fi
+              # date +'%d/%m/%Y %H:%M:%S:%3N'
+              sleep 0.1
+            done;
 
-                  # https://nixos.wiki/wiki/NixOS:nixos-rebuild_build-vm
-                  users.extraGroups.nixgroup.gid = 999;
+            remote-viewer spice://localhost:"$VNC_PORT"
 
-                  users.users.nixuser = {
-                    isSystemUser = true;
-                    password = "";
-                    createHome = true;
-                    home = "/home/nixuser";
-                    homeMode = "0700";
-                    description = "The VM tester user";
-                    group = "nixgroup";
-                    extraGroups = [
-                      "podman"
-                      "kvm"
-                      "libvirtd"
-                      "wheel"
-                    ];
-                    packages = with pkgs; [
-                      direnv
-                      file
-                      gnumake
-                      which
-                      coreutils
-                    ];
-                    shell = pkgs.bashInteractive;
-                    uid = 1234;
-                    autoSubUidGidRange = true;
+            kill $PID_QEMU
+          '';
+        };
 
-                    openssh.authorizedKeys.keyFiles = [
-                      "${ ./nixuser-keys.pub }"
-                    ];
+      })
+    ];
+  } // (
+    let
+      # nix flake show --allow-import-from-derivation --impure --refresh .#
+      suportedSystems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+        "x86_64-darwin"
+      ];
 
-                    openssh.authorizedKeys.keys = [
-                      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKyhLx5HU63zJJ5Lx4j+NTC/OQZ7Weloc8y+On467kly"
-                    ];
-                  };
+    in
+    flake-utils.lib.eachSystem suportedSystems (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ self.overlays.default ];
+        };
+      in
+      {
+        packages = {
+          inherit (pkgs)
+            myapp
+            myappOCIImage
+            testMyappOCIImage
+            myvm
+            automatic-vm
+            ;
 
-                  virtualisation = {
-                    # following configuration is added only when building VM with build-vm
-                    memorySize = 3072; # Use MiB memory.
-                    diskSize = 1024 * 16; # Use MiB memory.
-                    cores = 6; # Simulate 6 cores.
+          default = pkgs.myapp;
+        };
 
-                    #
-                    docker.enable = false;
-                    podman.enable = true;
+        apps.default = {
+          type = "app";
+          program = "${pkgs.lib.getExe pkgs.myapp}";
+        };
 
-                    #
-                    useNixStoreImage = true;
-                    writableStore = true; # TODO
-                  };
+        apps.automatic-vm = {
+          type = "app";
+          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+        };
 
-                  nixpkgs.config.allowUnfree = true;
-                  nix = {
-                    # package = nixpkgs.pkgs.nix;
-                    extraOptions = "experimental-features = nix-command flakes";
-                    readOnlyStore = true;
-                  };
+        apps.testmyappAsOCIImageDriverInteractive = {
+          type = "app";
+          program = "${pkgs.lib.getExe pkgs.testmyappAsOCIImage.driverInteractive}";
+        };
 
-                  # https://github.com/NixOS/nixpkgs/issues/21332#issuecomment-268730694
-                  services.openssh = {
-                    allowSFTP = true;
-                    kbdInteractiveAuthentication = false;
-                    enable = true;
-                    forwardX11 = false;
-                    passwordAuthentication = false;
-                    permitRootLogin = "yes";
-                    ports = [ 10022 ];
-                    authorizedKeysFiles = [
-                      "${ ./nixuser-keys.pub }"
-                    ];
-                  };
+        formatter = pkgs.nixpkgs-fmt;
 
-                  time.timeZone = "America/Recife";
-                  system.stateVersion = "22.11";
+        checks = {
+          inherit (pkgs)
+            myapp
+            myappOCIImage
+            devShellsDefault
+            devShellsPoetry
+            ;
+            # devShellsDefault = self.devShells.default;
+        }
+        //
+          (pkgs.lib.optionals pkgs.stdenv.isLinux {
+            inherit (pkgs)           
+              testMyappOCIImage
+              automatic-vm
+              ;
+            }
+          )        
+        ;
 
-                  users.users.root = {
-                    password = "root";
-                    initialPassword = "root";
-                    openssh.authorizedKeys.keyFiles = [
-                      "${ ./nixuser-keys.pub }"
-                    ];
-                  };
-                })
-              ];
-          };
-
-      packages.checkNixFormat = pkgsAllowUnfree.runCommand "check-nix-format" { } ''
-        ${pkgsAllowUnfree.nixpkgs-fmt}/bin/nixpkgs-fmt --check ${./.}
-
-        # For fix
-        # find . -type f -iname '*.nix' -exec nixpkgs-fmt {} \;
-
-        mkdir $out #sucess
-      '';
-
-      apps.${name} = flake-utils.lib.mkApp {
-        inherit name;
-        drv = packages.${name};
-      };
-
-      devShells.default = pkgsAllowUnfree.mkShell {
-        buildInputs = with pkgsAllowUnfree; [
-          bashInteractive
-          coreutils
-          curl
-          gnumake
-          patchelf
-          # poetry
-          python3Full
-          tmate
-          podman
-        ];
-
-        shellHook = ''
-            export NIXOS_VM_USER=nixuser
-            export HOST_MAPPED_PORT=10022
-            export REMOVE_DISK=true
-            export QEMU_NET_OPTS=hostfwd=tcp::"$HOST_MAPPED_PORT"-:"$HOST_MAPPED_PORT",hostfwd=tcp::8000-:8000
-            # export QEMU_OPTS="-nographic"
-            # export QEMU_OPTS="-daemonize -display none -monitor none"
-            export SHARED_DIR="$(pwd)"
-            # export RUN_BUID_VM_SCRIPT_PATH="''${self.nixosConfigurations.x86_64-linux.nixosBuildVMX86_64LinuxPodman.config.system.build.vm}"/bin/run-nixos-vm
-            export CONTAINER_HOST=ssh://"$NIXOS_VM_USER"@localhost:"$HOST_MAPPED_PORT"/run/user/1234/podman/podman.sock
-
-            "$REMOVE_DISK" && rm -fv nixos.qcow2
-
-            # chmod 0600 .id_ed25519
-            IDENTITY_FULL_PATH=./id_ed25519
-
-            chmod -v 0600 "$IDENTITY_FULL_PATH"
-
-            ssh-keygen -R '[localhost]:10022'
-            ssh-add -l | grep -q 'SHA256:NzLgwADMD4taCNCdiTTRz0yyMdN0AguJVZD+eHiQZjE' || ssh-add "$IDENTITY_FULL_PATH"
-
-            # ssh -T -i "$IDENTITY_FULL_PATH" -o ConnectTimeout=1 -o StrictHostKeyChecking=no nixuser@localhost -p "$HOST_MAPPED_PORT" <<<'systemctl is-active podman.socket' \
-            # || ( "$RUN_BUID_VM_SCRIPT_PATH" & )
-
-            # $("$RUN_BUID_VM_SCRIPT_PATH" < /dev/null &)&
-            # "$RUN_BUID_VM_SCRIPT_PATH"
-
-            # TODO: pq o podman.service não está ativo?
-            # while ! ssh -T -i "$IDENTITY_FULL_PATH" -o ConnectTimeout=1 -o StrictHostKeyChecking=no nixuser@localhost -p "$HOST_MAPPED_PORT" <<<'systemctl is-active podman.socket'; do \
-            #   echo $(date +'%d/%m/%Y %H:%M:%S:%3N'); sleep 0.5; done
-
-        '';
-      };
-    });
+        devShells = with pkgs; {
+          default = devShellsDefault;
+          poetry = devShellsPoetry;
+        };
+      }
+    )
+  );
 }

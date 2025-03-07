@@ -10,8 +10,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
-          # - ubuntu-24.04
+          # - ubuntu-latest
+          - ubuntu-24.04
           # - ubuntu-22.04
           # - ubuntu-20.04
           # 
@@ -50,7 +50,7 @@ jobs:
         run: |          
           docker --version || true
           docker images || true
-          docker run alpine:3.18 sh -c 'cat /etc/os-release' || true
+          # docker run alpine:3.18 sh -c 'cat /etc/os-release' || true
 
       - uses: actions/checkout@v4
         with:
@@ -80,59 +80,6 @@ jobs:
           nix flake --version
           nix flake metadata '.#'
           nix flake show '.#'
-          # nix build --no-link --print-out-paths '.#'
-          # nix develop '.#' --command true          
-          # nix flake check '.#'
-
-      - name: nix build ...
-        run: |
-          nix \
-          build \
-          --no-link \
-          --print-out-paths \
-          github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347#pkgsCross.riscv64.python3Packages.uv
-          echo 2_3
-          nix \
-          build \
-          --no-link \
-          --print-build-logs \
-          --print-out-paths \
-          github:NixOS/nixpkgs/90055d5e616bd943795d38808c94dbf0dd35abe8#pkgsStatic.nixVersions.nix_2_3
-          # echo 2_18
-          # sha512sum $(
-          #   nix \
-          #   build \
-          #   --rebuild \
-          #   --no-link \
-          #   --print-build-logs \
-          #   --print-out-paths \
-          #   github:NixOS/nixpkgs/90055d5e616bd943795d38808c94dbf0dd35abe8#pkgsStatic.nixVersions.nix_2_18
-          # )/bin/nix
-          #
-          # nix build --print-build-logs --print-out-paths github:NixOS/nix/20f04721492396570524509a9de45bc1e3a1524c#nix-static
-          # nix build --rebuild --print-build-logs --print-out-paths github:NixOS/nix/20f04721492396570524509a9de45bc1e3a1524c#nix-static
-          #
-          # sha512sum $(
-          #   nix \
-          #   build \
-          #   --rebuild \
-          #   --no-link \
-          #   --print-build-logs \
-          #   --print-out-paths \
-          #   github:NixOS/nix/93e8660bba42c8c90fcc1455ebb6e8631b66d4cb#hydraJobs.buildStatic.x86_64-linux
-          # )/bin/nix
-          # ./minimal.sh
-          # ls -lah /nix/store/z8s3ajlqb0hbabzr7j4cnji1fr4iz8a4-nixos-23.11.6510.a5e4bbc
-          # curl https://hydra.nixos.org/build/230309007/reproduce | bash 
-          # ls -lah /nix/store/2ps218g7snl3747p07xjs83c96w9ah5b-nixos-22.11.4773.ea4c80b
-          # sha256sum /nix/store/2ps218g7snl3747p07xjs83c96w9ah5b-nixos-22.11.4773.ea4c80b/iso/nixos-minimal-22.11.4773.ea4c80b39be4-x86_64-linux.iso
-
-
-#      - name: nix build ...
-#        run: |
-#          nix build --no-link --print-build-logs \
-#          --file nixos-test-python-cross.nix
-
-#      - name: nix build nixosTest
-#        run: |
-#          nix build --no-link --print-build-logs github:ES-Nix/nixosTest/2f37db3fe507e725f5e94b42a942cdfef30e5d75#checks.x86_64-linux.test-nixos
+          nix build --no-link --print-out-paths '.#'
+          nix develop '.#' --command true          
+          nix flake check '.#'

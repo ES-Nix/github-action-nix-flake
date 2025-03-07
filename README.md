@@ -1,29 +1,63 @@
-# github-action-nix-flake
-
-Tests with GitHub Actions and `nix` + `flakes`
 
 
-Main source: 
-- https://github.com/cachix/install-nix-action
-
-To read:
-- https://github.com/NixOS/nix/pull/4224
-- https://github.com/NixOS/nix/issues/4047
-
-
-Cloning using the Nix CLI:
 ```bash
-nix flake clone 'git+ssh://git@github.com/ES-Nix/github-action-nix-flake.git' --dest github-action-nix-flake \
-&& cd github-action-nix-flake 1>/dev/null 2>/dev/null \
-&& git checkout dev \
-&& (direnv --version 1>/dev/null 2>/dev/null && direnv allow) \
-|| nix develop $SHELL
+rm -fv nixos.qcow2
+nix run --impure --refresh --verbose '.#'
 ```
 
-Cloning using the git CLI:
+
+
+Invoking in the host:
 ```bash
-git clone git@github.com:ES-Nix/github-action-nix-flake.git \
-&& cd github-action-nix-flake \
-&& git checkout dev \
-&& ((direnv 1>/dev/null 2>/dev/null && direnv allow) || nix develop .#)
+start
+```
+
+
+Or using with docker:
+```bash
+docker run -it --rm --publish=5000:5000 myapp-oci-image:0.0.1
+```
+
+
+Or using with podman:
+```bash
+podman run -it --rm --publish=5000:5000 localhost/myapp-oci-image:0.0.1
+```
+
+
+```bash
+curl http://127.0.0.1:5000
+firefox http://127.0.0.1:5000
+```
+
+TODO: missing checks that validate code formating, like black.
+
+
+```bash
+nix flake metadata '.#'
+nix flake show '.#'
+
+nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
+
+nix flake check --verbose '.#'
+```
+
+
+
+```bash
+python -m myapp?
+python -c 'import myapp?'
+```
+
+
+```bash
+nix flake update '.#'
+ ```
+
+```bash
+nix flake metadata '.#'
+```
+
+```bash
+nix flake check '.#'
 ```

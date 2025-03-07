@@ -469,7 +469,7 @@
           };
         }
         //
-          (pkgs.lib.optionalAttrs pkgs.stdenv.isLinux
+          (pkgs.lib.optionalAttrs pkgs.stdenv.isx86_64
             {
               automatic-vm = {
                 type = "app";
@@ -495,7 +495,7 @@
             # devShellsDefault = self.devShells.default;
         }
         //
-          (pkgs.lib.optionalAttrs pkgs.stdenv.isLinux
+          (pkgs.lib.optionalAttrs pkgs.stdenv.isx86_64
             {
               inherit (pkgs) 
                 myappOCIImage

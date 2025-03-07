@@ -481,12 +481,13 @@
             # devShellsDefault = self.devShells.default;
         }
         //
-          (pkgs.lib.optionals pkgs.stdenv.isLinux {
-            inherit (pkgs)           
-              testMyappOCIImage
-              automatic-vm
-              ;
-            }
+          (pkgs.lib.optionalAttrs pkgs.stdenv.isLinux
+            {
+              inherit (pkgs)           
+                testMyappOCIImage
+                automatic-vm
+                ;
+              }
           )        
         ;
 

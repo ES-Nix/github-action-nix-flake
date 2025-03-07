@@ -79,7 +79,7 @@ jobs:
         run: |
           nix flake --version
           nix flake metadata '.#'
-          # nix flake show '.#'
+          nix flake show '.#'
           nix build --no-link --print-out-paths '.#'
           nix develop '.#' --command true          
           nix flake check '.#'

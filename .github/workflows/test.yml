@@ -51,7 +51,8 @@ jobs:
           nix flake metadata nixpkgs
           # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
           # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.sqlite
-          nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite          
+          # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
+          nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.ffmpeg
       
       - name: Build checkedout local flake
         run: |

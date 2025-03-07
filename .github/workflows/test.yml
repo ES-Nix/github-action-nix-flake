@@ -11,10 +11,14 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - ubuntu-24.04-arm
           # - ubuntu-24.04
           # - ubuntu-22.04
           # - ubuntu-20.04
+          # 
+          - ubuntu-latest-arm
+          # - ubuntu-24.04-arm
+          # - ubuntu-22.04-arm
+          #           
           - macos-latest
           # - macos-15
           # - macos-14
@@ -45,7 +49,7 @@ jobs:
           nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
           nix run nixpkgs#nix-info -- --markdown
           nix flake metadata nixpkgs
-          # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
+          nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
           # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.sqlite
           # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite          
       
@@ -54,7 +58,7 @@ jobs:
           nix flake --version
           nix flake metadata '.#'
           nix flake show '.#'
-          nix develop '.#' --command true
+          # nix develop '.#' --command true
           # nix flake check '.#'
 
       # - name: docker

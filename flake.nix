@@ -445,10 +445,10 @@
         packages = {
           inherit (pkgs)
             myapp
-            myappOCIImage
-            testMyappOCIImage
-            myvm
-            automatic-vm
+            # myappOCIImage
+            # testMyappOCIImage
+            # myvm
+            # automatic-vm
             ;
 
           default = pkgs.myapp;
@@ -489,7 +489,7 @@
                 automatic-vm
                 ;
               }
-          )        
+          )
         ;
 
         devShells = with pkgs; {

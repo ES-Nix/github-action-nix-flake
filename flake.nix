@@ -473,9 +473,8 @@
 
         checks = {
           inherit (pkgs)
+            bashInteractive
             myapp
-            myappOCIImage
-            devShellsDefault
             devShellsPoetry
             ;
             # devShellsDefault = self.devShells.default;
@@ -483,7 +482,9 @@
         //
           (pkgs.lib.optionalAttrs pkgs.stdenv.isLinux
             {
-              inherit (pkgs)           
+              inherit (pkgs) 
+                myappOCIImage
+                devShellsDefault       
                 testMyappOCIImage
                 automatic-vm
                 ;

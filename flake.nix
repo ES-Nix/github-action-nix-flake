@@ -450,7 +450,7 @@
         }
         //
           # TODO: isLinux is not working because of /dev/kvm missing in github actions that are aarch64-linux
-          (pkgs.lib.optionalAttrs pkgs.stdenv.isx86_64
+          (pkgs.lib.optionalAttrs (pkgs.stdenv.isx86_64 && pkgs.stdenv.isLinux)
             {
               inherit (pkgs)
                 automatic-vm
@@ -469,7 +469,7 @@
           };
         }
         //
-          (pkgs.lib.optionalAttrs pkgs.stdenv.isx86_64
+          (pkgs.lib.optionalAttrs (pkgs.stdenv.isx86_64 && pkgs.stdenv.isLinux)
             {
               automatic-vm = {
                 type = "app";
@@ -490,12 +490,10 @@
           inherit (pkgs)
             bashInteractive
             myapp
-            devShellsPoetry
             ;
-            # devShellsDefault = self.devShells.default;
         }
         //
-          (pkgs.lib.optionalAttrs pkgs.stdenv.isx86_64
+          (pkgs.lib.optionalAttrs (pkgs.stdenv.isx86_64 && pkgs.stdenv.isLinux)
             {
               inherit (pkgs) 
                 myappOCIImage

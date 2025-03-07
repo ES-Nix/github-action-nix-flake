@@ -464,9 +464,9 @@
           program = "${pkgs.lib.getExe pkgs.automatic-vm}";
         };
 
-        apps.testmyappAsOCIImageDriverInteractive = {
+        apps.testMyappOCIImageDriverInteractive = {
           type = "app";
-          program = "${pkgs.lib.getExe pkgs.testmyappAsOCIImage.driverInteractive}";
+          program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
         };
 
         formatter = pkgs.nixpkgs-fmt;

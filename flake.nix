@@ -454,20 +454,27 @@
           default = pkgs.myapp;
         };
 
-        apps.default = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.myapp}";
-        };
+        apps = {
+          defaut = {
+            type = "app";
+            program = "${pkgs.lib.getExe pkgs.myapp}";
+          };
+        }
+        //
+          (pkgs.lib.optionalAttrs pkgs.stdenv.isLinux
+            {
+              automatic-vm = {
+                type = "app";
+                program = "${pkgs.lib.getExe pkgs.automatic-vm}";
+              };
 
-        apps.automatic-vm = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.automatic-vm}";
-        };
-
-        apps.testMyappOCIImageDriverInteractive = {
-          type = "app";
-          program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
-        };
+              testMyappOCIImageDriverInteractive = {
+                type = "app";
+                program = "${pkgs.lib.getExe pkgs.testMyappOCIImage.driverInteractive}";
+              };
+            }
+          )        
+        ;
 
         formatter = pkgs.nixpkgs-fmt;
 

@@ -349,7 +349,7 @@
                 };
               };
               config.environment.systemPackages = with final; [
-                riscv64MuslPython312
+                myappAarch64Linux
               ];
 
               config.boot.binfmt.emulatedSystems = [
@@ -358,7 +358,7 @@
 
               config.boot.binfmt.registrations = {
                 aarch64-linux = {
-                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch6464";
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
                   fixBinary = true;
                 };
               };
@@ -399,7 +399,7 @@
         };
 
 
-        testBinfmtAarch64 = prev.testers.runNixOSTest {
+        testBinfmtRiscv64 = prev.testers.runNixOSTest {
           name = "test-riscv64-binfmt";
           nodes.machine =
             { config, pkgs, lib, modulesPath, ... }:
@@ -424,7 +424,7 @@
                 };
               };
               config.environment.systemPackages = with final; [
-                riscv64MuslPython312
+                myappRiscv64Linux
               ];
 
               config.boot.binfmt.emulatedSystems = [

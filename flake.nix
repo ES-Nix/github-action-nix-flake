@@ -717,15 +717,20 @@
           default = pkgs.myapp;
         }
         //
-          # TODO: isLinux is not working because of /dev/kvm missing in github actions that are aarch64-linux
+          # TODO: isLinux is not suficient because of /dev/kvm missing in github actions that are aarch64-linux
           (pkgs.lib.optionalAttrs (pkgs.stdenv.isx86_64 && pkgs.stdenv.isLinux)
             {
               inherit (pkgs)
                 automatic-vm
                 myappOCIImage
+                myappAarch64Linux
+                myappRiscv64Linux
+                myappOCIImageAarch64Linux
+                myappOCIImageRiscv64Linux
                 myvm
                 testMyappOCIImage
-                testBinfmtMany
+                testBinfmtAarch64
+                testBinfmtRiscv64
                 ;
             }
           )        
@@ -758,6 +763,7 @@
         checks = {
           inherit (pkgs)
             bashInteractive
+            devShellsPoetry
             myapp
             ;
         }
@@ -765,11 +771,22 @@
           (pkgs.lib.optionalAttrs (pkgs.stdenv.isx86_64 && pkgs.stdenv.isLinux)
             {
               inherit (pkgs) 
-                myappOCIImage
                 devShellsDefault       
-                testMyappOCIImage
+
                 automatic-vm
-                testBinfmtMany
+
+                myappAarch64Linux
+                myappRiscv64Linux
+
+                myappOCIImage
+                myappOCIImageAarch64Linux
+                myappOCIImageRiscv64Linux
+
+                myvm
+
+                testMyappOCIImage
+                testBinfmtAarch64
+                testBinfmtRiscv64
                 ;
               }
           )

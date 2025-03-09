@@ -101,7 +101,141 @@
               final.myapp
               # final.bashInteractive
               # final.coreutils
-              final.busybox
+              # final.busybox
+            ]
+            ++
+            (nonRootShadowSetup { user = "app_user"; uid = 12345; group = "app_group"; gid = 6789; })
+            ;
+
+            config = {
+              # TODO: use builtins.getTOML to get the command!
+              Cmd = [ "start" ];
+            };
+          };
+
+        myappAarch64Linux = final.pkgsCross.aarch64-multiplatform.p2n.mkPoetryApplication {
+          projectDir = ./.;
+
+          overrides = final.p2n.defaultPoetryOverrides.extend
+            (final: prev: {
+              itsdangerous = prev.itsdangerous.overridePythonAttrs
+                (
+                  old: {
+                    buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                  }
+                );
+
+              jinja2 = prev.jinja2.overridePythonAttrs
+                (
+                  old: {
+                    buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                  }
+                );
+
+            });
+        };
+
+        myappOCIImageAarch64Linux =
+          let
+
+            nonRootShadowSetup = { user, uid, group, gid }: with prev; [
+              (
+                writeTextDir "etc/shadow" ''
+                  ${user}:!:::::::
+                ''
+              )
+              (
+                writeTextDir "etc/passwd" ''
+                  ${user}:x:${toString uid}:${toString gid}::/home/${user}:${runtimeShell}
+                ''
+              )
+              (
+                writeTextDir "etc/group" ''
+                  ${group}:x:${toString gid}:
+                ''
+              )
+              (
+                writeTextDir "etc/gshadow" ''
+                  ${group}:x::
+                ''
+              )
+            ];
+          in
+          prev.dockerTools.buildLayeredImage {
+            name = "myapp-oci-image";
+            tag = "0.0.1";
+            contents = [
+              final.myappAarch64Linux
+              # final.bashInteractive
+              # final.coreutils
+              # final.busybox
+            ]
+            ++
+            (nonRootShadowSetup { user = "app_user"; uid = 12345; group = "app_group"; gid = 6789; })
+            ;
+
+            config = {
+              # TODO: use builtins.getTOML to get the command!
+              Cmd = [ "start" ];
+            };
+          };
+
+        myappRiscv64Linux = final.pkgsCross.riscv64.p2n.mkPoetryApplication {
+          projectDir = ./.;
+
+          overrides = final.p2n.defaultPoetryOverrides.extend
+            (final: prev: {
+              itsdangerous = prev.itsdangerous.overridePythonAttrs
+                (
+                  old: {
+                    buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                  }
+                );
+
+              jinja2 = prev.jinja2.overridePythonAttrs
+                (
+                  old: {
+                    buildInputs = (old.buildInputs or [ ]) ++ [ final.flit-core ];
+                  }
+                );
+
+            });
+        };
+
+        myappOCIImageRiscv64Linux =
+          let
+
+            nonRootShadowSetup = { user, uid, group, gid }: with prev; [
+              (
+                writeTextDir "etc/shadow" ''
+                  ${user}:!:::::::
+                ''
+              )
+              (
+                writeTextDir "etc/passwd" ''
+                  ${user}:x:${toString uid}:${toString gid}::/home/${user}:${runtimeShell}
+                ''
+              )
+              (
+                writeTextDir "etc/group" ''
+                  ${group}:x:${toString gid}:
+                ''
+              )
+              (
+                writeTextDir "etc/gshadow" ''
+                  ${group}:x::
+                ''
+              )
+            ];
+          in
+          prev.dockerTools.buildLayeredImage {
+            name = "myapp-oci-image";
+            tag = "0.0.1";
+            contents = [
+              final.myappRiscv64Linux
+              # final.bashInteractive
+              # final.coreutils
+              # final.busybox
             ]
             ++
             (nonRootShadowSetup { user = "app_user"; uid = 12345; group = "app_group"; gid = 6789; })
@@ -131,9 +265,8 @@
           '';          
         };
 
-
         testMyappOCIImage = prev.testers.runNixOSTest {
-          name = "myapp-as-oci-image";
+          name = "myapp-as-oci-image-risc64";
           nodes.machine =
             { config, pkgs, lib, ... }:
             {
@@ -149,28 +282,13 @@
                 script = ''
                   echo "Loading OCI Images..."
 
-                  docker load <"${final.myappOCIImage}"
-                  podman load <"${final.myappOCIImage}"
+                  docker load <"${final.myappOCIImageRiscv64Linux}"
+                  podman load <"${final.myappOCIImageRiscv64Linux}"
                 '';
                 serviceConfig = {
                   Type = "oneshot";
                 };
               };
-
-              # https://wiki.nixos.org/wiki/NixOS_VM_tests#Connecting_to_an_interactive_VM_via_SSH
-              # ssh root@localhost -p 2000
-              # config.services.openssh = {
-              #   enable = true;
-              #   settings = {
-              #     PermitRootLogin = "yes";
-              #     PermitEmptyPasswords = "yes";
-              #   };
-              # };
-              # config.security.pam.services.sshd.allowNullPassword = true;
-              # config.virtualisation.forwardPorts = [
-              #   { from = "host"; host.port = 2000; guest.port = 22; }
-              # ];
-
             };
           testScript = ''
             start_all()
@@ -203,6 +321,156 @@
             assert expected in result, f"expected = {expected}, result = {result}"
           '';
           # hostPkgs = pkgs; # the Nixpkgs package set used outside the VMs
+        };
+
+
+        testBinfmtAarch64 = prev.testers.runNixOSTest {
+          name = "test-aarch64-binfmt";
+          nodes.machine =
+            { config, pkgs, lib, modulesPath, ... }:
+            {
+              config.virtualisation.docker.enable = true;
+              config.virtualisation.podman.enable = true;
+
+              # journalctl --unit docker-podman-load.service -b -f
+              config.systemd.services.docker-podman-load = {
+                description = "Docker and Podman load OCI Images";
+                wantedBy = [ "multi-user.target" ];
+                after = [ "docker.service" "podman.service" ];
+                path = with pkgs; [ docker podman ];
+                script = ''
+                  echo "Loading OCI Images..."
+
+                  docker load <"${final.myappOCIImageAarch64Linux}"
+                  podman load <"${final.myappOCIImageAarch64Linux}"
+                '';
+                serviceConfig = {
+                  Type = "oneshot";
+                };
+              };
+              config.environment.systemPackages = with final; [
+                riscv64MuslPython312
+              ];
+
+              config.boot.binfmt.emulatedSystems = [
+                "aarch64-linux"
+              ];
+
+              config.boot.binfmt.registrations = {
+                aarch64-linux = {
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch6464";
+                  fixBinary = true;
+                };
+              };
+            };
+
+          globalTimeout = 2 * 60;
+
+          testScript = ''
+            start_all()
+
+            # machine.wait_for_unit("docker-podman-load") # TODO
+            machine.wait_until_succeeds("docker images | grep myapp")
+
+            machine.succeed("docker run -d --name=container-app --publish=5000:5000 --rm=true myapp-oci-image:0.0.1")
+            machine.wait_for_open_port(5000)
+            expected = 'Hello world!!'
+            result = machine.wait_until_succeeds("curl http://0.0.0.0:5000")
+            assert expected == result, f"expected = {expected}, result = {result}"
+
+            machine.succeed("docker stop container-app")
+            expected = "curl: (7) Failed to connect to 127.0.0.1 port 5000 after"
+            result = machine.fail("curl http://127.0.0.1:5000 2>&1")
+            assert expected in result, f"expected = {expected}, result = {result}"
+
+            machine.wait_until_succeeds("podman images | grep myapp")
+
+            machine.succeed("podman run -d --name=container-app --publish=5000:5000 --rm=true myapp-oci-image:0.0.1")
+            machine.wait_for_open_port(5000)
+            expected = 'Hello world!!'
+            result = machine.wait_until_succeeds("curl http://0.0.0.0:5000")
+            assert expected == result, f"expected = {expected}, result = {result}"
+
+            machine.succeed("podman stop container-app")
+            expected = "curl: (7) Failed to connect to 127.0.0.1 port 5000 after"
+            result = machine.fail("curl http://127.0.0.1:5000 2>&1")
+            assert expected in result, f"expected = {expected}, result = {result}"
+          '';
+        };
+
+
+        testBinfmtAarch64 = prev.testers.runNixOSTest {
+          name = "test-riscv64-binfmt";
+          nodes.machine =
+            { config, pkgs, lib, modulesPath, ... }:
+            {
+              config.virtualisation.docker.enable = true;
+              config.virtualisation.podman.enable = true;
+
+              # journalctl --unit docker-podman-load.service -b -f
+              config.systemd.services.docker-podman-load = {
+                description = "Docker and Podman load OCI Images";
+                wantedBy = [ "multi-user.target" ];
+                after = [ "docker.service" "podman.service" ];
+                path = with pkgs; [ docker podman ];
+                script = ''
+                  echo "Loading OCI Images..."
+
+                  docker load <"${final.myappOCIImageRiscv64Linux}"
+                  podman load <"${final.myappOCIImageRiscv64Linux}"
+                '';
+                serviceConfig = {
+                  Type = "oneshot";
+                };
+              };
+              config.environment.systemPackages = with final; [
+                riscv64MuslPython312
+              ];
+
+              config.boot.binfmt.emulatedSystems = [
+                "riscv64-linux"
+              ];
+
+              config.boot.binfmt.registrations = {
+                riscv64-linux = {
+                  interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-riscv64";
+                  fixBinary = true;
+                };
+              };
+            };
+
+          globalTimeout = 2 * 60;
+
+          testScript = ''
+            start_all()
+
+            # machine.wait_for_unit("docker-podman-load") # TODO
+            machine.wait_until_succeeds("docker images | grep myapp")
+
+            machine.succeed("docker run -d --name=container-app --publish=5000:5000 --rm=true myapp-oci-image:0.0.1")
+            machine.wait_for_open_port(5000)
+            expected = 'Hello world!!'
+            result = machine.wait_until_succeeds("curl http://0.0.0.0:5000")
+            assert expected == result, f"expected = {expected}, result = {result}"
+
+            machine.succeed("docker stop container-app")
+            expected = "curl: (7) Failed to connect to 127.0.0.1 port 5000 after"
+            result = machine.fail("curl http://127.0.0.1:5000 2>&1")
+            assert expected in result, f"expected = {expected}, result = {result}"
+
+            machine.wait_until_succeeds("podman images | grep myapp")
+
+            machine.succeed("podman run -d --name=container-app --publish=5000:5000 --rm=true myapp-oci-image:0.0.1")
+            machine.wait_for_open_port(5000)
+            expected = 'Hello world!!'
+            result = machine.wait_until_succeeds("curl http://0.0.0.0:5000")
+            assert expected == result, f"expected = {expected}, result = {result}"
+
+            machine.succeed("podman stop container-app")
+            expected = "curl: (7) Failed to connect to 127.0.0.1 port 5000 after"
+            result = machine.fail("curl http://127.0.0.1:5000 2>&1")
+            assert expected in result, f"expected = {expected}, result = {result}"
+          '';
         };
 
         nixos-vm = nixpkgs.lib.nixosSystem {
@@ -457,6 +725,7 @@
                 myappOCIImage
                 myvm
                 testMyappOCIImage
+                testBinfmtMany
                 ;
             }
           )        
@@ -500,6 +769,7 @@
                 devShellsDefault       
                 testMyappOCIImage
                 automatic-vm
+                testBinfmtMany
                 ;
               }
           )

@@ -59,5 +59,5 @@ nix flake metadata '.#'
 ```
 
 ```bash
-nix flake check '.#'
+nix --cores 8 flake check --verbose '.#'
 ```

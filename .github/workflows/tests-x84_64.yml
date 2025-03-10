@@ -1,4 +1,4 @@
-name: "Tests for: Riscv64 Linux QEMU Virtual Machine using binfmt and KVM from X86_64 Linux"
+name: "Tests for: X86_64 Linux QEMU Virtual Machine using KVM"
 on:
   pull_request:
   push:
@@ -80,6 +80,5 @@ jobs:
           nix flake --version
           nix flake metadata '.#'
           nix flake show '.#'
-          nix build --no-link --print-out-paths '.#myappRiscv64Linux'
-          nix build --no-link --print-out-paths '.#testBinfmtRiscv64'
+          nix build --no-link --print-out-paths '.#testMyappOCIImage'
 

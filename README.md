@@ -1,8 +1,26 @@
 
 
+## With local git clone
+
+
+```bash
+nix flake metadata '.#'
+nix flake show '.#'
+
+nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
+
+nix --cores 8 flake check --verbose '.#' \
+&& nix --cores 8 build --no-link --print-out-paths '.#testMyappOCIImage' \
+&& nix --cores 8 build --no-link --print-out-paths '.#myappAarch64Linux' \
+&& nix --cores 8 build --no-link --print-out-paths '.#testBinfmtRiscv64'
+```
+
+
+## In the VM
+
 ```bash
 rm -fv nixos.qcow2
-nix run --impure --refresh --verbose '.#'
+nix run --impure --refresh --verbose '.#automatic-vm'
 ```
 
 
@@ -32,23 +50,13 @@ firefox http://127.0.0.1:5000
 
 TODO: missing checks that validate code formating, like black.
 
-
-```bash
-nix flake metadata '.#'
-nix flake show '.#'
-
-nix build --cores 8 --no-link --print-build-logs --print-out-paths '.#'
-
-nix flake check --verbose '.#'
-```
-
-
-
 ```bash
 python -m myapp?
 python -c 'import myapp?'
 ```
 
+
+## Updating
 
 ```bash
 nix flake update '.#'
@@ -59,5 +67,7 @@ nix flake metadata '.#'
 ```
 
 ```bash
-nix --cores 8 flake check --verbose '.#'
+nix --cores 8 flake check --verbose '.#' \
+&& nix --cores 8 build --no-link --print-out-paths '.#myappAarch64Linux' \
+&& nix --cores 8 build --no-link --print-out-paths '.#testBinfmtRiscv64'
 ```

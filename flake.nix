@@ -5,27 +5,6 @@
     nix \
     flake \
     lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/d063c1dd113c91ab27959ba540c0d9753409edf3' \
-    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
-    --override-input poetry2nix 'github:nix-community/poetry2nix/3c92540611f42d3fb2d0d084a6c694cd6544b609'
-
-    nix \
-    flake \
-    lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/057f63b6dc1a2c67301286152eb5af20747a9cb4' \
-    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
-    --override-input poetry2nix 'github:nix-community/poetry2nix/f554d27c1544d9c56e5f1f8e2b8aff399803674e'
-
-    nix \
-    flake \
-    lock \
-    --override-input nixpkgs 'github:NixOS/nixpkgs/11415c7ae8539d6292f2928317ee7a8410b28bb9' \
-    --override-input flake-utils 'github:numtide/flake-utils/b1d9ab70662946ef0850d488da1c9019f3a9752a' \
-    --override-input poetry2nix 'github:nix-community/poetry2nix/f554d27c1544d9c56e5f1f8e2b8aff399803674e'
-
-    nix \
-    flake \
-    lock \
     --override-input nixpkgs 'github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347' \
     --override-input flake-utils 'github:numtide/flake-utils/11707dc2f618dd54ca8739b309ec4fc024de578b' \
     --override-input poetry2nix 'github:nix-community/poetry2nix/98293f0b368f24c48e05aaa2359dcc0de15e976f'
@@ -401,7 +380,7 @@
 
 
         testBinfmtRiscv64 = prev.testers.runNixOSTest {
-          name = "test-riscv64-binfmt-riscv64";
+          name = "test-binfmt-riscv64";
           nodes.machine =
             { config, pkgs, lib, modulesPath, ... }:
             {
@@ -522,6 +501,22 @@
                     virtualisation.writableStore = true; # TODO: hardening
                   };
 
+                  boot.binfmt.emulatedSystems = [
+                    "aarch64-linux"
+                    "riscv64-linux"
+                  ];
+
+                  boot.binfmt.registrations = {
+                    aarch64-linux = {
+                      interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-aarch64";
+                      fixBinary = true;
+                    };
+                    riscv64-linux = {
+                      interpreter = "${pkgs.pkgsStatic.qemu-user}/bin/qemu-riscv64";
+                      fixBinary = true;
+                    };
+                  };
+
                 # journalctl --unit docker-custom-bootstrap-1.service -b -f
                 systemd.services.docker-custom-bootstrap-1 = {
                   description = "Docker Custom Bootstrap 1";
@@ -533,6 +528,12 @@
 
                     docker load <"${pkgs.myappOCIImage}"
                     podman load <"${pkgs.myappOCIImage}"
+
+                    docker load <"${final.myappOCIImageAarch64Linux}"
+                    podman load <"${final.myappOCIImageAarch64Linux}"
+
+                    docker load <"${final.myappOCIImageRiscv64Linux}"
+                    podman load <"${final.myappOCIImageRiscv64Linux}"
                   '';
                   serviceConfig = {
                     Type = "oneshot";
@@ -785,7 +786,7 @@
 
                 myvm
 
-                testMyappOCIImage
+                # testMyappOCIImage
                 # testBinfmtAarch64
                 # testBinfmtRiscv64
                 ;

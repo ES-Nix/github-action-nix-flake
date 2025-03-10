@@ -1,4 +1,4 @@
-name: "Tests for: Aarch64 Linux using binfmt and KVM from X86_64 Linux"
+name: "Tests for: Aarch64 Linux QEMU Virtual Machine using binfmt and KVM from X86_64 Linux"
 on:
   pull_request:
   push:

@@ -776,18 +776,18 @@
 
                 automatic-vm
 
-                myappAarch64Linux
-                myappRiscv64Linux
+                # myappAarch64Linux
+                # myappRiscv64Linux
 
                 myappOCIImage
-                myappOCIImageAarch64Linux
+                # myappOCIImageAarch64Linux
                 # myappOCIImageRiscv64Linux
 
                 myvm
 
                 testMyappOCIImage
-                testBinfmtAarch64
-                testBinfmtRiscv64
+                # testBinfmtAarch64
+                # testBinfmtRiscv64
                 ;
               }
           )

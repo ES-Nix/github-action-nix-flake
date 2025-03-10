@@ -1,0 +1,83 @@
+name: "Tests for Aarch64 Linux using binfmt and KVM from X86_64 Linux"
+on:
+  pull_request:
+  push:
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          # - ubuntu-latest
+          - ubuntu-24.04
+          # - ubuntu-22.04
+          # - ubuntu-20.04
+          # 
+          # - ubuntu-latest-arm
+          # - ubuntu-24.04-arm
+          # - ubuntu-22.04-arm
+          #           
+          # - macos-latest
+          # - macos-15
+          # - macos-14
+          # - macos-13
+        nix-version: [2.26.2]
+
+    steps:
+      - name: Metadata about the runs-on machine before everything
+        run: |
+          id
+          stat /dev/kvm || true            
+          uname -a
+          cat /etc/os-release || true
+          cat /etc/lsb-release || true
+          cat /proc/cpuinfo || true
+          cat /proc/meminfo || true
+          df -h || true
+          free -h || true
+          nproc || true
+          lscpu || true
+          # sysctl -a || true
+          sysctl -a | grep -i mem || true
+          sysctl -a | grep -i cpu || true
+          sysctl -a | grep -i vm || true
+          sysctl -a | grep -i sched || true
+          sysctl -a | grep -i numa || true
+
+      - name: Smoke test about docker
+        run: |          
+          docker --version || true
+          # docker images || true
+          # docker run alpine:3.18 sh -c 'cat /etc/os-release' || true
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v16
+        with:
+          source-tag: v0.38.1
+          diagnostic-endpoint: ""
+          nix-package-url: https://releases.nixos.org/nix/nix-${{ matrix.nix-version }}/nix-${{ matrix.nix-version }}-${{ runner.arch == 'X64' && 'x86_64' || 'aarch64' }}-${{ runner.os == 'macOS' && 'darwin' || 'linux' }}.tar.xz
+
+      - name: Build pkgsStatic.hello for testing nix
+        run: |
+          nix flake --version
+          # nix registry list
+          nix registry pin nixpkgs github:NixOS/nixpkgs/1546c45c538633ae40b93e2d14e0bb6fd8f13347
+          nix run nixpkgs#nix-info -- --markdown
+          nix flake metadata nixpkgs
+          # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.hello
+          # nix build --no-link --print-out-paths nixpkgs#pkgsStatic.sqlite
+          # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.pkgsStatic.sqlite
+          # nix build --no-link --print-out-paths nixpkgs#pkgsCross.riscv64.ffmpeg
+      
+      - name: Build checked out local flake
+        run: |
+          nix flake --version
+          nix flake metadata '.#'
+          nix flake show '.#'
+          nix build --no-link --print-out-paths '.#myappAarch64Linux'

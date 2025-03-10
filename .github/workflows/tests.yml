@@ -1,4 +1,3 @@
-name: "Test matrix of OSes and Nix"
 name: "Tests for: X86_64 Linux and others using binfmt and KVM from X86_64 Linux"
 on:
   pull_request:

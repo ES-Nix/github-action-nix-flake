@@ -1,4 +1,4 @@
-name: "Tests for Aarch64 Linux using binfmt and KVM from X86_64 Linux"
+name: "Tests for: Riscv64 Linux using binfmt and KVM from X86_64 Linux"
 on:
   pull_request:
   push:
@@ -80,4 +80,6 @@ jobs:
           nix flake --version
           nix flake metadata '.#'
           nix flake show '.#'
-          nix build --no-link --print-out-paths '.#myappAarch64Linux'
+          nix build --no-link --print-out-paths '.#myappRiscv64Linux'
+          nix build --no-link --print-out-paths '.#testBinfmtRiscv64'
+

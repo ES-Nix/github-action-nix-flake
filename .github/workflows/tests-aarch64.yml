@@ -1,4 +1,4 @@
-name: "Test matrix of OSes and Nix"
+name: "Tests for: Aarch64 Linux using binfmt and KVM from X86_64 Linux"
 on:
   pull_request:
   push:
@@ -16,13 +16,13 @@ jobs:
           # - ubuntu-20.04
           # 
           # - ubuntu-latest-arm
-          - ubuntu-24.04-arm
+          # - ubuntu-24.04-arm
           # - ubuntu-22.04-arm
           #           
-          - macos-latest
+          # - macos-latest
           # - macos-15
           # - macos-14
-          - macos-13
+          # - macos-13
         nix-version: [2.26.2]
 
     steps:
@@ -49,7 +49,7 @@ jobs:
       - name: Smoke test about docker
         run: |          
           docker --version || true
-          docker images || true
+          # docker images || true
           # docker run alpine:3.18 sh -c 'cat /etc/os-release' || true
 
       - uses: actions/checkout@v4
@@ -80,6 +80,5 @@ jobs:
           nix flake --version
           nix flake metadata '.#'
           nix flake show '.#'
-          nix build --no-link --print-out-paths '.#'
-          nix develop '.#' --command true          
-          nix flake check '.#'
+          nix build --no-link --print-out-paths '.#myappAarch64Linux'
+          nix build --no-link --print-out-paths '.#testBinfmtAarch64'

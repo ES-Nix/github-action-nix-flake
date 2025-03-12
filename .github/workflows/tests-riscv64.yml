@@ -23,7 +23,7 @@ jobs:
           # - macos-15
           # - macos-14
           # - macos-13
-        nix-version: [2.26.2]
+        nix-version: [2.26.3]
 
     steps:
       - name: Metadata about the runs-on machine before everything
@@ -82,4 +82,3 @@ jobs:
           nix flake show '.#'
           nix build --no-link --print-out-paths '.#myappRiscv64Linux'
           nix build --no-link --print-out-paths '.#testBinfmtRiscv64'
-
